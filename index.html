@@ -54,13 +54,6 @@
         }
         .tweet-card.clickable:active { background-color: #f7f9f9; }
 
-        .reply-branch {
-            position: relative;
-            padding-left: 12px;
-            margin-left: 20px;
-            border-left: 2px solid #e2e8f0;
-        }
-
         .bottom-nav {
             height: 64px;
             background: rgba(255, 255, 255, 0.95);
@@ -198,12 +191,6 @@
             background: #f8fafc;
             border-color: #cbd5e1;
         }
-
-        .danger-zone {
-            margin-top: 32px;
-            border-top: 1px solid #f1f5f9;
-            padding-top: 24px;
-        }
     </style>
 </head>
 <body>
@@ -211,6 +198,7 @@
     <div id="loading-screen">
         <div class="text-emerald-500 text-4xl mb-4"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
         <div class="font-bold text-gray-400">接続中...</div>
+        <p class="text-[10px] text-gray-300 mt-4 uppercase tracking-widest">サーバーを確認しています</p>
     </div>
 
     <!-- 未ログイン時のゲートウェイ -->
@@ -220,18 +208,18 @@
                 <i class="fa-solid fa-leaf"></i>
             </div>
             <h2 class="text-2xl font-black text-gray-800 mb-2">STEP卒煙へようこそ</h2>
-            <p class="text-gray-500 text-sm mb-8">仲間と一緒に、新しい自分へ。</p>
+            <p class="text-gray-500 text-sm mb-8 font-medium">仲間と一緒に、新しい自分へ。</p>
             
             <button id="btn-real-login" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all mb-3">
-                会員登録 / ログイン
+                ログイン / 会員登録
             </button>
             
             <button id="btn-guest-login" class="w-full btn-outline font-bold py-4 rounded-2xl active:scale-[0.98] transition-all mb-4">
-                ゲストとして閲覧
+                ゲストとして利用
             </button>
 
             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                ※ゲストは投稿や設定保存ができません
+                ゲストは閲覧のみ可能です。投稿や<br>データの保存にはログインが必要です。
             </p>
         </div>
     </div>
@@ -271,21 +259,21 @@
         <!-- Notification View -->
         <div id="view-notif" class="scrollable hidden">
             <div class="p-4 border-b border-gray-50 flex justify-between items-center bg-white sticky top-0 z-10">
-                <h2 class="font-bold">通知</h2>
+                <h2 class="font-bold text-gray-800">通知</h2>
                 <button onclick="clearAllNotifs()" class="text-xs text-emerald-600 font-bold">すべて消去</button>
             </div>
-            <div id="notif-list"></div>
+            <div id="notif-list" class="p-10 text-center text-gray-300 font-bold">通知はありません</div>
         </div>
 
         <!-- Settings View -->
         <div id="view-setting" class="scrollable hidden p-4 pb-24">
-            <h2 class="text-lg font-bold mb-6 px-1 text-gray-800">プロフィール・禁煙設定</h2>
+            <h2 class="text-lg font-bold mb-6 px-1 text-gray-800">設定</h2>
             
             <div id="guest-alert" class="hidden mb-6 p-4 bg-amber-50 rounded-2xl border border-amber-100">
                 <p class="text-xs font-bold text-amber-700 leading-relaxed">
-                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> 現在ゲストモードです。設定の保存には会員登録が必要です。
+                    現在ゲストモードです。禁煙データの保存にはログインが必要です。
                 </p>
-                <button onclick="logout()" class="mt-3 text-xs font-black text-amber-800 uppercase tracking-widest">ログイン画面へ</button>
+                <button onclick="logout()" class="mt-2 text-xs font-black text-amber-800 underline uppercase tracking-widest">ログインへ</button>
             </div>
 
             <div class="space-y-1">
@@ -305,28 +293,19 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="form-group">
                         <label class="form-label">1日の本数</label>
-                        <div class="flex items-center">
-                            <input type="number" id="cfg-sticks" class="form-input" min="1">
-                            <span class="text-xs font-bold text-gray-400 ml-1 shrink-0">本</span>
-                        </div>
+                        <input type="number" id="cfg-sticks" class="form-input" min="1">
                     </div>
                     <div class="form-group">
                         <label class="form-label">1箱の値段</label>
-                        <div class="flex items-center">
-                            <input type="number" id="cfg-price" class="form-input" min="1">
-                            <span class="text-xs font-bold text-gray-400 ml-1 shrink-0">円</span>
-                        </div>
+                        <input type="number" id="cfg-price" class="form-input" min="1">
                     </div>
                 </div>
                 
-                <div class="pt-4">
+                <div class="pt-4 space-y-3">
                     <button id="btn-save-settings" onclick="updateSettings()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-transform">設定を保存する</button>
-                    <div class="mt-4 text-[10px] text-gray-400 text-center font-bold uppercase tracking-widest">User ID: <span id="display-uid">---</span></div>
-                </div>
-
-                <div class="danger-zone space-y-3">
-                    <button onclick="logout()" class="w-full py-4 text-gray-500 font-bold border-2 border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors">ログアウト</button>
-                    <button onclick="deleteAccount()" class="w-full py-4 text-red-400 font-bold hover:text-red-600 transition-colors text-sm">アカウントを削除する</button>
+                    <button onclick="logout()" class="w-full py-4 text-gray-500 font-bold border-2 border-gray-100 rounded-2xl">ログアウト</button>
+                    <button onclick="deleteAccount()" class="w-full py-4 text-red-300 font-bold text-xs hover:text-red-500">アカウントを削除する</button>
+                    <div class="text-[10px] text-gray-300 text-center uppercase tracking-widest mt-2">ID: <span id="display-uid">---</span></div>
                 </div>
             </div>
         </div>
@@ -347,69 +326,42 @@
             </button>
         </nav>
 
-        <!-- Thread Layer -->
+        <!-- Side Layers -->
         <div id="detail-layer" class="side-layer">
             <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-4 shrink-0">
-                <button onclick="closeDetail()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </button>
+                <button onclick="closeDetail()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button>
                 <h2 class="font-bold text-lg text-gray-800">スレッド</h2>
             </header>
-            <div id="thread-scroll" class="scrollable bg-white">
-                <div id="detail-parent"></div>
-                <div class="px-4 py-3 bg-gray-50/50 text-[10px] font-black text-gray-400 border-y border-gray-100 uppercase tracking-[0.2em]">会話</div>
-                <div id="detail-replies" class="pb-32"></div>
-            </div>
+            <div id="detail-parent" class="scrollable"></div>
         </div>
 
-        <!-- Profile Layer -->
         <div id="profile-layer" class="side-layer">
             <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-4 shrink-0">
-                <button onclick="closeProfile()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </button>
+                <button onclick="closeProfile()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button>
                 <h2 class="font-bold text-lg text-gray-800">プロフィール</h2>
             </header>
-            <div class="scrollable bg-white">
-                <div class="h-24 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-                <div class="px-4 -mt-8 mb-4">
-                    <div id="profile-icon" class="w-20 h-20 bg-white border-4 border-white rounded-3xl shadow-lg flex items-center justify-center text-3xl font-black text-emerald-600">?</div>
-                </div>
-                <div class="px-4">
-                    <h3 id="profile-name" class="text-xl font-bold text-gray-900">読み込み中...</h3>
-                    <div id="profile-rank" class="inline-block text-[10px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-100 mt-1 uppercase">ビギナー</div>
-                    <p id="profile-bio" class="text-sm text-gray-600 mt-3 leading-relaxed">...</p>
-                    
-                    <div class="flex gap-6 mt-4 border-t border-gray-50 pt-4">
-                        <div>
-                            <span id="profile-days" class="font-black text-gray-900">--日目</span>
-                            <span class="text-[10px] text-gray-400 font-bold ml-1 uppercase">禁煙期間</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-6 border-t-8 border-gray-50">
-                    <div class="px-4 py-3 border-b border-gray-50">
-                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">投稿</span>
-                    </div>
-                    <div id="profile-posts-list" class="divide-y divide-gray-50 pb-20"></div>
-                </div>
+            <div id="profile-content" class="scrollable px-4 py-6">
+                <div id="profile-icon-large" class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center text-3xl font-black mb-4 mx-auto">?</div>
+                <h3 id="profile-name-large" class="text-xl font-bold text-center">---</h3>
+                <p id="profile-bio-large" class="text-sm text-gray-500 text-center mt-2 mb-6">---</p>
+                <div id="profile-posts-list" class="divide-y divide-gray-50"></div>
             </div>
         </div>
 
-        <!-- FAB -->
+        <!-- Post FAB -->
         <button id="fab" class="post-button" onclick="openPostModal()">
             <i class="fa-solid fa-plus text-2xl"></i>
         </button>
     </div>
 
-    <!-- Modal -->
+    <!-- Post Modal -->
     <div id="modal-overlay">
-        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 h-[85vh] flex flex-col shadow-2xl">
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 h-[80vh] flex flex-col">
             <div class="flex justify-between items-center mb-6">
-                <button onclick="closePostModal()" class="text-gray-400 font-bold px-2">キャンセル</button>
-                <button onclick="handlePostSubmit()" class="bg-emerald-600 text-white px-8 py-2.5 rounded-full font-bold shadow-md">投稿</button>
+                <button onclick="closePostModal()" class="text-gray-400 font-bold">閉じる</button>
+                <button onclick="handlePostSubmit()" class="bg-emerald-600 text-white px-6 py-2 rounded-full font-bold">投稿する</button>
             </div>
-            <textarea id="modal-textarea" class="flex-1 w-full text-xl border-none focus:ring-0 resize-none font-medium text-gray-800" placeholder="今の気持ちをシェア"></textarea>
+            <textarea id="modal-textarea" class="flex-1 w-full text-lg border-none focus:ring-0 resize-none font-medium" placeholder="今の気持ちをシェア..."></textarea>
         </div>
     </div>
 
@@ -434,208 +386,166 @@
         const getPublicCollection = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
         const getPrivateDoc = (uid) => doc(db, 'artifacts', appId, 'users', uid, 'settings', 'profile');
 
-        const initAuth = async () => {
+        const hideLoading = () => {
+            const loader = document.getElementById('loading-screen');
+            if (loader) loader.style.display = 'none';
+        };
+
+        const showGateway = () => {
+            hideLoading();
+            const gateway = document.getElementById('auth-gateway');
+            if (gateway) gateway.style.display = 'flex';
+        };
+
+        // UIアクション
+        document.getElementById('btn-guest-login').onclick = async () => {
+            const loader = document.getElementById('loading-screen');
+            if (loader) loader.style.display = 'flex';
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    try {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } catch (tokenErr) {
-                        showAuthGateway();
-                    }
-                } else {
-                    showAuthGateway();
-                }
-            } catch (error) {
-                showAuthGateway();
-            }
-        };
-
-        const showAuthGateway = () => {
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('auth-gateway').style.display = 'flex';
-        };
-
-        const hideAuthGateway = () => {
-            document.getElementById('auth-gateway').style.display = 'none';
-        };
-
-        // イベントリスナー
-        document.getElementById('btn-guest-login').addEventListener('click', async () => {
-            try {
-                document.getElementById('loading-screen').style.display = 'flex';
                 await signInAnonymously(auth);
-                hideAuthGateway();
-            } catch (err) {
-                showToast("ログインに失敗しました");
+            } catch (e) {
+                showToast("ログイン失敗");
+                showGateway();
             }
-        });
+        };
 
-        document.getElementById('btn-real-login').addEventListener('click', () => {
-            showToast("現在、デモ版のため会員登録は「ゲストとして利用」をご利用ください。");
-        });
+        document.getElementById('btn-real-login').onclick = () => {
+            showToast("デモ版：ゲストログインを利用してください");
+        };
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                state.currentUser = user;
-                document.getElementById('display-uid').innerText = user.uid;
-                
-                // ゲストアラートの表示制御
-                const isGuest = user.isAnonymous;
-                document.getElementById('guest-alert').style.display = isGuest ? 'block' : 'none';
-                if (isGuest) {
-                    document.getElementById('btn-save-settings').classList.add('opacity-50', 'pointer-events-none');
+        // 認証と初期化フローの改善
+        const initAppFlow = async () => {
+            // タイムアウト監視（5秒）
+            const authTimeout = setTimeout(() => {
+                if (!state.currentUser) showGateway();
+            }, 5000);
+
+            // 認証監視
+            onAuthStateChanged(auth, async (user) => {
+                clearTimeout(authTimeout);
+                if (user) {
+                    state.currentUser = user;
+                    await startSession(user);
                 } else {
-                    document.getElementById('btn-save-settings').classList.remove('opacity-50', 'pointer-events-none');
+                    // 自動ログイン試行
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            showGateway();
+                        }
+                    } catch (e) {
+                        showGateway();
+                    }
                 }
+            });
+        };
 
+        const startSession = async (user) => {
+            const idEl = document.getElementById('display-uid');
+            if (idEl) idEl.innerText = user.uid.substring(0, 8) + '...';
+            
+            const isGuest = user.isAnonymous;
+            const guestAlert = document.getElementById('guest-alert');
+            if (guestAlert) guestAlert.classList.toggle('hidden', !isGuest);
+            
+            const saveBtn = document.getElementById('btn-save-settings');
+            if (saveBtn) {
+                if (isGuest) saveBtn.classList.add('opacity-50', 'pointer-events-none');
+                else saveBtn.classList.remove('opacity-50', 'pointer-events-none');
+            }
+
+            try {
+                // 1. プロフィール読み込み
                 const userDoc = await getDoc(getPrivateDoc(user.uid));
                 if (userDoc.exists()) {
                     state.userData = userDoc.data();
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', user.uid), {
-                        name: state.userData.name,
-                        bio: state.userData.bio,
-                        date: state.userData.date,
-                        uid: user.uid
-                    }, { merge: true });
-                } else {
-                    await setDoc(getPrivateDoc(user.uid), state.userData);
                 }
-
+                
+                // 2. フォーム反映
                 document.getElementById('cfg-name').value = state.userData.name;
                 document.getElementById('cfg-bio').value = state.userData.bio;
                 document.getElementById('cfg-date').value = state.userData.date;
                 document.getElementById('cfg-sticks').value = state.userData.sticks;
                 document.getElementById('cfg-price').value = state.userData.price;
 
-                onSnapshot(getPublicCollection('posts'), (snapshot) => {
-                    state.posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // 3. リアルタイム同期開始
+                onSnapshot(getPublicCollection('posts'), (snap) => {
+                    state.posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     renderTimeline();
                 });
 
-                onSnapshot(getPublicCollection('profiles'), (snapshot) => {
-                    snapshot.docs.forEach(doc => { state.profiles[doc.id] = doc.data(); });
+                onSnapshot(getPublicCollection('profiles'), (snap) => {
+                    snap.docs.forEach(d => { state.profiles[d.id] = d.data(); });
                     renderTimeline();
                 });
 
-                document.getElementById('loading-screen').style.display = 'none';
-                hideAuthGateway();
                 renderDashboard();
-            } else {
-                showAuthGateway();
+                hideLoading();
+                document.getElementById('auth-gateway').style.display = 'none';
+            } catch (e) {
+                console.error(e);
+                hideLoading();
             }
-        });
+        };
 
         window.renderDashboard = () => {
-            const days = calculateDays(state.userData.date);
-            document.getElementById('stat-days').innerText = `${days + 1}日目`;
-            const savedMoney = Math.floor(days * (state.userData.sticks / 20) * state.userData.price);
-            const avoidedSticks = Math.floor(days * state.userData.sticks);
-            document.getElementById('stat-money').innerText = `¥${savedMoney.toLocaleString()}`;
-            document.getElementById('stat-sticks').innerText = `${avoidedSticks.toLocaleString()}本`;
-
-            const badge = document.getElementById('badge-rank');
-            if (days >= 30) {
-                badge.className = "text-[11px] font-bold bg-purple-50 text-purple-600 px-3 py-1 rounded-full border border-purple-100";
-                badge.innerText = "卒煙マスター";
-            } else if (days >= 7) {
-                badge.className = "text-[11px] font-bold bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100";
-                badge.innerText = "継続エキスパート";
-            } else {
-                badge.className = "text-[11px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full border border-emerald-100";
-                badge.innerText = "卒煙ビギナー";
+            const start = new Date(state.userData.date);
+            const now = new Date();
+            const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            const dEl = document.getElementById('stat-days');
+            if (dEl) dEl.innerText = `${days + 1}日目`;
+            const sEl = document.getElementById('stat-money');
+            if (sEl) {
+                const saved = Math.floor(days * (state.userData.sticks / 20) * state.userData.price);
+                sEl.innerText = `¥${saved.toLocaleString()}`;
             }
+            const bEl = document.getElementById('stat-sticks');
+            if (bEl) bEl.innerText = `${Math.floor(days * state.userData.sticks)}本`;
         };
 
         function renderTimeline() {
-            const homeList = document.getElementById('home-posts');
-            const roots = state.posts
-                .filter(p => !p.parentId)
-                .sort((a,b) => new Date(b.date) - new Date(a.date));
-            homeList.innerHTML = roots.map(p => createCardHTML(p)).join('');
-        }
-
-        window.createCardHTML = (p, isThreadContext = false) => {
-            const repliesCount = state.posts.filter(x => x.parentId === p.id).length;
-            const canOpenThread = !p.parentId && !isThreadContext;
-            const clickAttr = canOpenThread ? `onclick="openThread('${p.id}')"` : '';
-            const userName = state.profiles[p.uid]?.name || p.user || "不明なユーザー";
-
-            return `
-                <div class="tweet-card p-4 flex gap-3 bg-white ${canOpenThread ? 'clickable cursor-pointer' : ''}" ${clickAttr}>
-                    <div onclick="event.stopPropagation(); openProfile('${p.uid}')" class="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center font-bold text-emerald-600 shrink-0 text-sm shadow-sm cursor-pointer hover:scale-105 transition-transform">${userName[0]}</div>
+            const list = document.getElementById('home-posts');
+            if (!list) return;
+            const sorted = [...state.posts].sort((a,b) => new Date(b.date) - new Date(a.date));
+            list.innerHTML = sorted.map(p => {
+                const profile = state.profiles[p.uid] || {};
+                const name = profile.name || p.user || "ユーザー";
+                return `
+                <div class="p-4 border-b border-gray-50 flex gap-3 bg-white active:bg-gray-50" onclick="openProfile('${p.uid}')">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center font-bold text-emerald-600 shrink-0">
+                        ${name[0]}
+                    </div>
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span onclick="event.stopPropagation(); openProfile('${p.uid}')" class="font-bold text-[14px] text-gray-900 truncate hover:underline cursor-pointer">${userName}</span>
-                            <span class="text-gray-400 text-[11px] font-medium">${formatTime(p.date)}</span>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold text-sm truncate">${name}</span>
+                            <span class="text-[10px] text-gray-400">${formatTime(p.date)}</span>
                         </div>
-                        <p class="text-[14px] leading-relaxed mb-3 text-gray-700 whitespace-pre-wrap">${p.content}</p>
-                        <div class="flex gap-10 text-gray-400">
-                            <button onclick="event.stopPropagation(); openPostModal('${p.id}')" class="flex items-center gap-1.5 hover:text-emerald-500 transition-colors">
-                                <i class="fa-regular fa-comment text-[16px]"></i>
-                                <span class="text-[11px] font-bold">${repliesCount}</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); handleLike('${p.id}')" class="flex items-center gap-1.5 ${p.likes?.includes(state.currentUser?.uid) ? 'text-pink-500' : 'hover:text-pink-500'} transition-colors">
-                                <i class="${p.likes?.includes(state.currentUser?.uid) ? 'fa-solid' : 'fa-regular'} fa-heart text-[16px]"></i>
-                                <span class="text-[11px] font-bold">${p.likes?.length || 0}</span>
-                            </button>
-                        </div>
+                        <p class="text-[14px] text-gray-700 leading-relaxed">${p.content}</p>
                     </div>
                 </div>
-            `;
+            `}).join('');
+        }
+
+        window.formatTime = (s) => {
+            const diff = (new Date() - new Date(s)) / 1000;
+            if(diff < 60) return "今";
+            if(diff < 3600) return Math.floor(diff/60) + "分前";
+            return new Date(s).toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
         };
 
-        window.switchView = (view) => {
-            ['home', 'notif', 'setting'].forEach(v => {
-                const el = document.getElementById('view-' + v);
-                const nav = document.getElementById('nav-' + v);
-                if (el) el.classList.add('hidden');
-                if (nav) nav.classList.replace('text-emerald-600', 'text-gray-400');
+        window.switchView = (v) => {
+            ['home', 'notif', 'setting'].forEach(x => {
+                document.getElementById('view-'+x).classList.add('hidden');
+                document.getElementById('nav-'+x).classList.replace('text-emerald-600', 'text-gray-400');
             });
-            const activeView = document.getElementById('view-' + view);
-            const activeNav = document.getElementById('nav-' + view);
-            if (activeView) activeView.classList.remove('hidden');
-            if (activeNav) activeNav.classList.replace('text-gray-400', 'text-emerald-600');
-            document.getElementById('header-title').innerText = view === 'home' ? 'ホーム' : (view === 'notif' ? '通知' : '設定');
+            document.getElementById('view-'+v).classList.remove('hidden');
+            document.getElementById('nav-'+v).classList.replace('text-gray-400', 'text-emerald-600');
+            document.getElementById('header-title').innerText = v === 'home' ? 'ホーム' : (v === 'notif' ? '通知' : '設定');
         };
 
-        window.openThread = (id) => {
-            const root = state.posts.find(p => p.id === id);
-            if(!root) return;
-            document.getElementById('detail-parent').innerHTML = createCardHTML(root, true);
-            const repliesContainer = document.getElementById('detail-replies');
-            repliesContainer.innerHTML = '';
-            
-            const children = state.posts.filter(p => p.parentId === id).sort((a,b) => new Date(a.date) - new Date(b.date));
-            children.forEach(child => {
-                const wrapper = document.createElement('div');
-                wrapper.innerHTML = createCardHTML(child, true);
-                repliesContainer.appendChild(wrapper);
-            });
-            
-            document.getElementById('detail-layer').classList.add('active');
-        };
-
-        window.closeDetail = () => document.getElementById('detail-layer').classList.remove('active');
-
-        window.openProfile = (uid) => {
-            const pData = state.profiles[uid] || (uid === state.currentUser?.uid ? state.userData : null);
-            if(!pData) return;
-            const days = calculateDays(pData.date);
-            document.getElementById('profile-name').innerText = pData.name;
-            document.getElementById('profile-bio').innerText = pData.bio || "自己紹介なし";
-            document.getElementById('profile-days').innerText = `${days + 1}日目`;
-            document.getElementById('profile-icon').innerText = pData.name[0];
-            document.getElementById('profile-posts-list').innerHTML = state.posts.filter(p => p.uid === uid && !p.parentId).map(p => createCardHTML(p, true)).join('');
-            document.getElementById('profile-layer').classList.add('active');
-        };
-
-        window.closeProfile = () => document.getElementById('profile-layer').classList.remove('active');
-
-        window.openPostModal = (replyId = null) => {
-            if (state.currentUser?.isAnonymous) {
-                return showToast("投稿するには会員登録が必要です");
-            }
-            window.currentReplyTargetId = replyId;
+        window.openPostModal = () => {
+            if (state.currentUser?.isAnonymous) return showToast("投稿にはログインが必要です");
             document.getElementById('modal-overlay').classList.add('active');
             document.getElementById('modal-textarea').focus();
         };
@@ -646,60 +556,38 @@
         };
 
         window.handlePostSubmit = async () => {
-            const content = document.getElementById('modal-textarea').value.trim();
-            if(!content || !state.currentUser) return;
+            const val = document.getElementById('modal-textarea').value.trim();
+            if (!val) return;
             try {
                 await addDoc(getPublicCollection('posts'), {
                     uid: state.currentUser.uid,
                     user: state.userData.name,
-                    content: content,
-                    date: new Date().toISOString(),
-                    likes: [],
-                    parentId: window.currentReplyTargetId || null
+                    content: val,
+                    date: new Date().toISOString()
                 });
                 closePostModal();
-                showToast("送信しました");
-            } catch (err) {
-                showToast("送信に失敗しました");
-            }
-        };
-
-        window.handleLike = async (postId) => {
-            if (state.currentUser?.isAnonymous) return showToast("いいねには会員登録が必要です");
-            const p = state.posts.find(x => x.id === postId);
-            if(!p || !state.currentUser) return;
-            let newLikes = p.likes || [];
-            if(newLikes.includes(state.currentUser.uid)) {
-                newLikes = newLikes.filter(u => u !== state.currentUser.uid);
-            } else {
-                newLikes.push(state.currentUser.uid);
-            }
-            try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId), { likes: newLikes });
-            } catch (err) {}
+                showToast("投稿しました");
+            } catch (e) { showToast("失敗しました"); }
         };
 
         window.updateSettings = async () => {
-            if (state.currentUser?.isAnonymous) return showToast("保存するには会員登録が必要です");
-            const newName = document.getElementById('cfg-name').value.trim();
-            const newBio = document.getElementById('cfg-bio').value.trim();
-            const newDate = document.getElementById('cfg-date').value;
-            const newSticks = parseInt(document.getElementById('cfg-sticks').value);
-            const newPrice = parseInt(document.getElementById('cfg-price').value);
-
-            if(!newName) return showToast("名前を入力してください");
-            state.userData = { name: newName, bio: newBio, date: newDate, sticks: newSticks, price: newPrice };
+            if (state.currentUser?.isAnonymous) return;
+            const data = {
+                name: document.getElementById('cfg-name').value,
+                bio: document.getElementById('cfg-bio').value,
+                date: document.getElementById('cfg-date').value,
+                sticks: parseInt(document.getElementById('cfg-sticks').value) || 20,
+                price: parseInt(document.getElementById('cfg-price').value) || 600
+            };
             try {
-                await setDoc(getPrivateDoc(state.currentUser.uid), state.userData);
+                await setDoc(getPrivateDoc(state.currentUser.uid), data);
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.currentUser.uid), {
-                    name: newName, bio: newBio, date: newDate, uid: state.currentUser.uid
+                    name: data.name, bio: data.bio, date: data.date, uid: state.currentUser.uid
                 }, { merge: true });
+                state.userData = data;
                 renderDashboard();
                 showToast("保存しました");
-                switchView('home');
-            } catch (err) {
-                showToast("保存に失敗しました");
-            }
+            } catch (e) { showToast("失敗しました"); }
         };
 
         window.logout = async () => {
@@ -708,41 +596,36 @@
         };
 
         window.deleteAccount = async () => {
-            if (!confirm("本当にアカウントを削除しますか？\nこれまでの禁煙データや投稿はすべて失われます。")) return;
+            if (!confirm("データをすべて削除しますか？")) return;
             try {
-                const uid = state.currentUser.uid;
-                // 公開データの削除
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid));
-                // 認証ユーザーの削除
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.currentUser.uid));
                 await deleteUser(state.currentUser);
-                showToast("アカウントを削除しました");
-                setTimeout(() => location.reload(), 1500);
-            } catch (err) {
-                showToast("削除に失敗しました。再ログイン後に試してください。");
-            }
+                location.reload();
+            } catch (e) { showToast("再ログインして試してください"); }
         };
 
-        function calculateDays(startDateStr) {
-            const diff = new Date() - new Date(startDateStr);
-            return Math.floor(diff / (1000 * 60 * 60 * 24));
-        }
+        window.openProfile = (uid) => {
+            const p = state.profiles[uid] || (uid === state.currentUser?.uid ? state.userData : null);
+            if (!p) return;
+            document.getElementById('profile-icon-large').innerText = (p.name || "?")[0];
+            document.getElementById('profile-name-large').innerText = p.name || "ユーザー";
+            document.getElementById('profile-bio-large').innerText = p.bio || "";
+            const list = document.getElementById('profile-posts-list');
+            const userPosts = state.posts.filter(x => x.uid === uid).sort((a,b) => new Date(b.date) - new Date(a.date));
+            list.innerHTML = userPosts.map(x => `<div class="p-4 text-sm border-b border-gray-50">${x.content}</div>`).join('');
+            document.getElementById('profile-layer').classList.add('active');
+        };
 
-        function formatTime(s) {
-            const diff = (new Date() - new Date(s)) / 1000;
-            if(diff < 60) return "今";
-            if(diff < 3600) return Math.floor(diff/60) + "分前";
-            if(diff < 86400) return Math.floor(diff/3600) + "時間前";
-            return new Date(s).toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
-        }
+        window.closeProfile = () => document.getElementById('profile-layer').classList.remove('active');
 
         function showToast(m) {
             const t = document.getElementById('toast');
-            t.innerText = m;
-            t.classList.add('show');
-            setTimeout(() => { t.classList.remove('show'); }, 2500);
+            t.innerText = m; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        initAuth();
+        // 実行開始
+        initAppFlow();
     </script>
 </body>
 </html>
