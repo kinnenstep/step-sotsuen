@@ -17,6 +17,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: #0f1419;
             overflow: hidden;
+            height: 100vh;
         }
 
         .app-container {
@@ -24,6 +25,10 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            display: none; /* 初期は非表示 */
+        }
+        .app-container.active {
+            display: flex;
         }
 
         .scrollable {
@@ -48,11 +53,6 @@
         .side-layer.active {
             transform: translateX(0);
         }
-
-        .tweet-card {
-            border-bottom: 1px solid var(--twitter-border);
-        }
-        .tweet-card.clickable:active { background-color: #f7f9f9; }
 
         .bottom-nav {
             height: 64px;
@@ -187,14 +187,11 @@
             background: white;
             color: #4b5563;
         }
-        .btn-outline:active {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-        }
     </style>
 </head>
 <body>
 
+    <!-- ローディング画面 -->
     <div id="loading-screen">
         <div class="text-emerald-500 text-4xl mb-4"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
         <div class="font-bold text-gray-400">接続中...</div>
@@ -226,7 +223,7 @@
 
     <div id="toast">完了しました</div>
 
-    <div class="app-container">
+    <div id="app-root" class="app-container">
         <!-- Header -->
         <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between shrink-0">
             <h1 id="header-title" class="text-xl font-bold tracking-tight text-gray-800">ホーム</h1>
@@ -260,7 +257,6 @@
         <div id="view-notif" class="scrollable hidden">
             <div class="p-4 border-b border-gray-50 flex justify-between items-center bg-white sticky top-0 z-10">
                 <h2 class="font-bold text-gray-800">通知</h2>
-                <button onclick="clearAllNotifs()" class="text-xs text-emerald-600 font-bold">すべて消去</button>
             </div>
             <div id="notif-list" class="p-10 text-center text-gray-300 font-bold">通知はありません</div>
         </div>
@@ -271,7 +267,7 @@
             
             <div id="guest-alert" class="hidden mb-6 p-4 bg-amber-50 rounded-2xl border border-amber-100">
                 <p class="text-xs font-bold text-amber-700 leading-relaxed">
-                    現在ゲストモードです。禁煙データの保存にはログインが必要です。
+                    現在はゲストモードです。保存機能を利用するにはログインが必要です。
                 </p>
                 <button onclick="logout()" class="mt-2 text-xs font-black text-amber-800 underline uppercase tracking-widest">ログインへ</button>
             </div>
@@ -279,32 +275,29 @@
             <div class="space-y-1">
                 <div class="form-group">
                     <label class="form-label">ユーザー名</label>
-                    <input type="text" id="cfg-name" class="form-input" placeholder="お名前">
+                    <input type="text" id="cfg-name" class="form-input">
                 </div>
                 <div class="form-group">
                     <label class="form-label">自己紹介</label>
-                    <textarea id="cfg-bio" class="form-textarea" placeholder="目標など"></textarea>
+                    <textarea id="cfg-bio" class="form-textarea"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">禁煙開始日</label>
                     <input type="date" id="cfg-date" class="form-input">
                 </div>
-                
                 <div class="grid grid-cols-2 gap-3">
                     <div class="form-group">
                         <label class="form-label">1日の本数</label>
-                        <input type="number" id="cfg-sticks" class="form-input" min="1">
+                        <input type="number" id="cfg-sticks" class="form-input">
                     </div>
                     <div class="form-group">
                         <label class="form-label">1箱の値段</label>
-                        <input type="number" id="cfg-price" class="form-input" min="1">
+                        <input type="number" id="cfg-price" class="form-input">
                     </div>
                 </div>
-                
                 <div class="pt-4 space-y-3">
                     <button id="btn-save-settings" onclick="updateSettings()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-transform">設定を保存する</button>
                     <button onclick="logout()" class="w-full py-4 text-gray-500 font-bold border-2 border-gray-100 rounded-2xl">ログアウト</button>
-                    <button onclick="deleteAccount()" class="w-full py-4 text-red-300 font-bold text-xs hover:text-red-500">アカウントを削除する</button>
                     <div class="text-[10px] text-gray-300 text-center uppercase tracking-widest mt-2">ID: <span id="display-uid">---</span></div>
                 </div>
             </div>
@@ -327,14 +320,6 @@
         </nav>
 
         <!-- Side Layers -->
-        <div id="detail-layer" class="side-layer">
-            <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-4 shrink-0">
-                <button onclick="closeDetail()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button>
-                <h2 class="font-bold text-lg text-gray-800">スレッド</h2>
-            </header>
-            <div id="detail-parent" class="scrollable"></div>
-        </div>
-
         <div id="profile-layer" class="side-layer">
             <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-4 shrink-0">
                 <button onclick="closeProfile()" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button>
@@ -367,10 +352,18 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, addDoc, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        const firebaseConfig = {
+  apiKey: "AIzaSyBk0fqca2a1xfmZsCLK_zJLSWsp8WV8UVk",
+  authDomain: "step-sotsuen.firebaseapp.com",
+  projectId: "step-sotsuen",
+  storageBucket: "step-sotsuen.firebasestorage.app",
+  messagingSenderId: "407444481880",
+  appId: "1:407444481880:web:d1b0176dfe20e7a3efa72d",
+  measurementId: "G-BG30SB69RR"
+};
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -383,148 +376,142 @@
             profiles: {}
         };
 
+        // コレクションパス定義
         const getPublicCollection = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
         const getPrivateDoc = (uid) => doc(db, 'artifacts', appId, 'users', uid, 'settings', 'profile');
 
-        const hideLoading = () => {
-            const loader = document.getElementById('loading-screen');
-            if (loader) loader.style.display = 'none';
+        const showLoading = (show) => {
+            document.getElementById('loading-screen').style.display = show ? 'flex' : 'none';
         };
 
-        const showGateway = () => {
-            hideLoading();
-            const gateway = document.getElementById('auth-gateway');
-            if (gateway) gateway.style.display = 'flex';
+        const showGateway = (show) => {
+            document.getElementById('auth-gateway').style.display = show ? 'flex' : 'none';
         };
 
-        // UIアクション
+        const showApp = (show) => {
+            document.getElementById('app-root').classList.toggle('active', show);
+        };
+
+        // ゲストログインボタン
         document.getElementById('btn-guest-login').onclick = async () => {
-            const loader = document.getElementById('loading-screen');
-            if (loader) loader.style.display = 'flex';
+            showGateway(false);
+            showLoading(true);
             try {
                 await signInAnonymously(auth);
             } catch (e) {
-                showToast("ログイン失敗");
-                showGateway();
+                console.error(e);
+                showToast("ログインに失敗しました");
+                showGateway(true);
+                showLoading(false);
             }
         };
 
         document.getElementById('btn-real-login').onclick = () => {
-            showToast("デモ版：ゲストログインを利用してください");
+            showToast("デモ版：ゲストログインをご利用ください");
         };
 
-        // 認証と初期化フローの改善
-        const initAppFlow = async () => {
-            // タイムアウト監視（5秒）
-            const authTimeout = setTimeout(() => {
-                if (!state.currentUser) showGateway();
-            }, 5000);
-
-            // 認証監視
+        // 初期化フロー
+        const init = async () => {
+            // 1. まずは認証状態の変更を待つ
             onAuthStateChanged(auth, async (user) => {
-                clearTimeout(authTimeout);
                 if (user) {
                     state.currentUser = user;
-                    await startSession(user);
+                    await setupUserSession(user);
                 } else {
-                    // 自動ログイン試行
+                    // ユーザーがいない場合、カスタムトークンを試すか、ゲートウェイを表示
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                             await signInWithCustomToken(auth, __initial_auth_token);
                         } else {
-                            showGateway();
+                            showLoading(false);
+                            showGateway(true);
                         }
                     } catch (e) {
-                        showGateway();
+                        showLoading(false);
+                        showGateway(true);
                     }
                 }
             });
         };
 
-        const startSession = async (user) => {
-            const idEl = document.getElementById('display-uid');
-            if (idEl) idEl.innerText = user.uid.substring(0, 8) + '...';
-            
+        const setupUserSession = async (user) => {
             const isGuest = user.isAnonymous;
-            const guestAlert = document.getElementById('guest-alert');
-            if (guestAlert) guestAlert.classList.toggle('hidden', !isGuest);
-            
-            const saveBtn = document.getElementById('btn-save-settings');
-            if (saveBtn) {
-                if (isGuest) saveBtn.classList.add('opacity-50', 'pointer-events-none');
-                else saveBtn.classList.remove('opacity-50', 'pointer-events-none');
-            }
+            document.getElementById('display-uid').innerText = user.uid.substring(0, 12) + "...";
+            document.getElementById('guest-alert').classList.toggle('hidden', !isGuest);
 
             try {
-                // 1. プロフィール読み込み
+                // 設定データの読み込み
                 const userDoc = await getDoc(getPrivateDoc(user.uid));
                 if (userDoc.exists()) {
-                    state.userData = userDoc.data();
+                    state.userData = { ...state.userData, ...userDoc.data() };
                 }
-                
-                // 2. フォーム反映
+
+                // フォームに反映
                 document.getElementById('cfg-name').value = state.userData.name;
                 document.getElementById('cfg-bio').value = state.userData.bio;
                 document.getElementById('cfg-date').value = state.userData.date;
                 document.getElementById('cfg-sticks').value = state.userData.sticks;
                 document.getElementById('cfg-price').value = state.userData.price;
 
-                // 3. リアルタイム同期開始
+                // リアルタイムリスナーの登録
                 onSnapshot(getPublicCollection('posts'), (snap) => {
                     state.posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     renderTimeline();
-                });
+                }, (err) => console.error("Posts error:", err));
 
                 onSnapshot(getPublicCollection('profiles'), (snap) => {
                     snap.docs.forEach(d => { state.profiles[d.id] = d.data(); });
                     renderTimeline();
-                });
+                }, (err) => console.error("Profiles error:", err));
 
                 renderDashboard();
-                hideLoading();
-                document.getElementById('auth-gateway').style.display = 'none';
+                showLoading(false);
+                showGateway(false);
+                showApp(true);
             } catch (e) {
-                console.error(e);
-                hideLoading();
+                console.error("Session Setup Error:", e);
+                showLoading(false);
+                showGateway(true);
             }
         };
 
+        // ダッシュボード更新
         window.renderDashboard = () => {
             const start = new Date(state.userData.date);
             const now = new Date();
-            const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-            const dEl = document.getElementById('stat-days');
-            if (dEl) dEl.innerText = `${days + 1}日目`;
-            const sEl = document.getElementById('stat-money');
-            if (sEl) {
-                const saved = Math.floor(days * (state.userData.sticks / 20) * state.userData.price);
-                sEl.innerText = `¥${saved.toLocaleString()}`;
-            }
-            const bEl = document.getElementById('stat-sticks');
-            if (bEl) bEl.innerText = `${Math.floor(days * state.userData.sticks)}本`;
+            const days = Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
+            
+            document.getElementById('stat-days').innerText = `${days + 1}日目`;
+            const saved = Math.floor(days * (state.userData.sticks / 20) * state.userData.price);
+            document.getElementById('stat-money').innerText = `¥${saved.toLocaleString()}`;
+            document.getElementById('stat-sticks').innerText = `${Math.floor(days * state.userData.sticks)}本`;
         };
 
+        // タイムライン描画
         function renderTimeline() {
             const list = document.getElementById('home-posts');
             if (!list) return;
             const sorted = [...state.posts].sort((a,b) => new Date(b.date) - new Date(a.date));
-            list.innerHTML = sorted.map(p => {
-                const profile = state.profiles[p.uid] || {};
-                const name = profile.name || p.user || "ユーザー";
-                return `
-                <div class="p-4 border-b border-gray-50 flex gap-3 bg-white active:bg-gray-50" onclick="openProfile('${p.uid}')">
-                    <div class="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center font-bold text-emerald-600 shrink-0">
-                        ${name[0]}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-bold text-sm truncate">${name}</span>
-                            <span class="text-[10px] text-gray-400">${formatTime(p.date)}</span>
+            
+            list.innerHTML = sorted.length === 0 ? 
+                '<div class="p-20 text-center text-gray-300 font-bold">投稿がありません</div>' :
+                sorted.map(p => {
+                    const profile = state.profiles[p.uid] || {};
+                    const name = profile.name || p.user || "ユーザー";
+                    return `
+                    <div class="p-4 border-b border-gray-50 flex gap-3 bg-white active:bg-gray-50" onclick="openProfile('${p.uid}')">
+                        <div class="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center font-bold text-emerald-600 shrink-0">
+                            ${name[0]}
                         </div>
-                        <p class="text-[14px] text-gray-700 leading-relaxed">${p.content}</p>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-bold text-sm truncate">${name}</span>
+                                <span class="text-[10px] text-gray-400">${formatTime(p.date)}</span>
+                            </div>
+                            <p class="text-[14px] text-gray-700 leading-relaxed">${p.content}</p>
+                        </div>
                     </div>
-                </div>
-            `}).join('');
+                `}).join('');
         }
 
         window.formatTime = (s) => {
@@ -557,7 +544,7 @@
 
         window.handlePostSubmit = async () => {
             const val = document.getElementById('modal-textarea').value.trim();
-            if (!val) return;
+            if (!val || !state.currentUser) return;
             try {
                 await addDoc(getPublicCollection('posts'), {
                     uid: state.currentUser.uid,
@@ -567,11 +554,12 @@
                 });
                 closePostModal();
                 showToast("投稿しました");
-            } catch (e) { showToast("失敗しました"); }
+            } catch (e) { showToast("送信に失敗しました"); }
         };
 
         window.updateSettings = async () => {
-            if (state.currentUser?.isAnonymous) return;
+            if (!state.currentUser || state.currentUser.isAnonymous) return showToast("保存するにはログインが必要です");
+            
             const data = {
                 name: document.getElementById('cfg-name').value,
                 bio: document.getElementById('cfg-bio').value,
@@ -579,29 +567,23 @@
                 sticks: parseInt(document.getElementById('cfg-sticks').value) || 20,
                 price: parseInt(document.getElementById('cfg-price').value) || 600
             };
+
             try {
                 await setDoc(getPrivateDoc(state.currentUser.uid), data);
+                // パブリックプロフィールも更新
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.currentUser.uid), {
-                    name: data.name, bio: data.bio, date: data.date, uid: state.currentUser.uid
+                    name: data.name, bio: data.bio, uid: state.currentUser.uid
                 }, { merge: true });
+                
                 state.userData = data;
                 renderDashboard();
-                showToast("保存しました");
-            } catch (e) { showToast("失敗しました"); }
+                showToast("設定を保存しました");
+            } catch (e) { showToast("保存に失敗しました"); }
         };
 
         window.logout = async () => {
             await signOut(auth);
             location.reload();
-        };
-
-        window.deleteAccount = async () => {
-            if (!confirm("データをすべて削除しますか？")) return;
-            try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.currentUser.uid));
-                await deleteUser(state.currentUser);
-                location.reload();
-            } catch (e) { showToast("再ログインして試してください"); }
         };
 
         window.openProfile = (uid) => {
@@ -610,9 +592,12 @@
             document.getElementById('profile-icon-large').innerText = (p.name || "?")[0];
             document.getElementById('profile-name-large').innerText = p.name || "ユーザー";
             document.getElementById('profile-bio-large').innerText = p.bio || "";
+            
             const list = document.getElementById('profile-posts-list');
             const userPosts = state.posts.filter(x => x.uid === uid).sort((a,b) => new Date(b.date) - new Date(a.date));
-            list.innerHTML = userPosts.map(x => `<div class="p-4 text-sm border-b border-gray-50">${x.content}</div>`).join('');
+            list.innerHTML = userPosts.length === 0 ? '<p class="p-10 text-center text-gray-300 text-xs">まだ投稿がありません</p>' : 
+                             userPosts.map(x => `<div class="p-4 text-sm border-b border-gray-50">${x.content}</div>`).join('');
+            
             document.getElementById('profile-layer').classList.add('active');
         };
 
@@ -620,12 +605,13 @@
 
         function showToast(m) {
             const t = document.getElementById('toast');
-            t.innerText = m; t.classList.add('show');
+            t.innerText = m; 
+            t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        // 実行開始
-        initAppFlow();
+        // 開始
+        init();
     </script>
 </body>
 </html>
