@@ -101,6 +101,7 @@
             z-index: 900;
             display: none; flex-direction: column; justify-content: center; align-items: center;
             padding: 2rem;
+            overflow-y: auto;
         }
 
         #modal-overlay {
@@ -111,11 +112,20 @@
             display: none;
         }
         #modal-overlay.active { display: block; }
+
+        .demo-badge {
+            background: #fee2e2;
+            color: #ef4444;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Loading -->
+    <!-- Loading Screen -->
     <div id="loading-screen">
         <div class="text-emerald-500 text-4xl mb-4"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
         <div class="font-bold text-gray-400">接続中...</div>
@@ -130,15 +140,35 @@
             <h2 class="text-2xl font-black text-gray-800 mb-2">STEP卒煙</h2>
             <p class="text-gray-500 text-sm mb-8">仲間と一緒に、新しい自分へ。</p>
             
-            <button id="btn-real-login" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg mb-3">
-                ログイン / 会員登録
-            </button>
-            
-            <button id="btn-guest-login" class="w-full border-2 border-gray-100 bg-white text-gray-500 font-bold py-4 rounded-2xl mb-4">
-                ゲストとして利用
-            </button>
+            <!-- Auth Form -->
+            <div id="auth-form" class="hidden space-y-3 mb-4">
+                <input type="email" id="auth-email" placeholder="メールアドレス" class="w-full bg-gray-50 p-4 rounded-2xl border-none outline-none text-sm">
+                <input type="password" id="auth-password" placeholder="パスワード" class="w-full bg-gray-50 p-4 rounded-2xl border-none outline-none text-sm">
+                <button id="btn-execute-auth" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg">
+                    <span id="auth-action-text">ログイン</span>
+                </button>
+                <button id="btn-toggle-auth" class="text-xs text-emerald-600 font-bold">アカウントを新規作成する</button>
+                <div class="border-t border-gray-100 my-4 pt-4">
+                    <button id="btn-back-to-gateway" class="text-xs text-gray-400 font-bold">戻る</button>
+                </div>
+            </div>
 
-            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+            <!-- Initial Buttons -->
+            <div id="gateway-buttons" class="space-y-3">
+                <button id="btn-show-login" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg">
+                    ログイン / 会員登録
+                </button>
+                
+                <button id="btn-guest-login" class="w-full border-2 border-gray-100 bg-white text-gray-500 font-bold py-4 rounded-2xl">
+                    ゲストとして利用
+                </button>
+            </div>
+
+            <div id="auth-info-msg" class="hidden text-emerald-600 text-[11px] mt-4 font-bold bg-emerald-50 p-3 rounded-xl">
+                オフラインモードで起動しています。<br>機能のテストが可能です。
+            </div>
+
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-6">
                 ゲストは閲覧のみ可能です。
             </p>
         </div>
@@ -149,13 +179,16 @@
     <div id="app-root" class="app-container">
         <!-- Header -->
         <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between shrink-0">
-            <h1 id="header-title" class="text-xl font-bold text-gray-800">ホーム</h1>
+            <h1 id="header-title" class="text-xl font-bold text-gray-800 flex items-center">
+                ホーム
+                <span id="demo-mode-indicator" class="demo-badge hidden">デモモード</span>
+            </h1>
             <div class="text-[11px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full border border-emerald-100">
                 卒煙ビギナー
             </div>
         </header>
 
-        <!-- Home -->
+        <!-- Home View -->
         <div id="view-home" class="view-content scrollable">
             <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 m-4 p-6 rounded-[2.5rem] text-white shadow-xl">
                 <div class="text-4xl font-black mb-4" id="stat-days">1日目</div>
@@ -170,19 +203,19 @@
                     </div>
                 </div>
             </div>
-            <div id="home-posts" class="divide-y divide-gray-50 pb-24"></div>
+            <div id="home-posts" class="divide-y divide-gray-0 pb-24"></div>
         </div>
 
-        <!-- Notif -->
+        <!-- Notif View -->
         <div id="view-notif" class="view-content scrollable hidden">
             <div id="notif-list" class="p-10 text-center text-gray-300 font-bold">通知はありません</div>
         </div>
 
-        <!-- Setting -->
+        <!-- Setting View -->
         <div id="view-setting" class="view-content scrollable hidden p-4 pb-24">
             <h2 class="text-lg font-bold mb-6 text-gray-800">設定</h2>
             <div id="guest-alert" class="hidden mb-6 p-4 bg-amber-50 rounded-2xl border border-amber-100 text-xs font-bold text-amber-700">
-                現在はゲストモードです。保存にはログインが必要です。
+                現在はゲストまたはデモモードです。データはクラウドに保存されません。
             </div>
             <div class="space-y-4">
                 <input type="text" id="cfg-name" placeholder="ユーザー名" class="w-full bg-gray-50 p-4 rounded-xl font-bold border-none outline-none">
@@ -196,7 +229,7 @@
             </div>
         </div>
 
-        <!-- Nav -->
+        <!-- Navigation -->
         <nav class="bottom-nav">
             <button data-view="home" class="nav-btn flex-1 flex flex-col items-center text-emerald-600">
                 <i class="fa-solid fa-house"></i><span class="text-[10px] mt-1 font-bold">ホーム</span>
@@ -225,119 +258,141 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Config
-       const firebaseConfig = {
-  apiKey: "AIzaSyBk0fqca2a1xfmZsCLK_zJLSWsp8WV8UVk",
-  authDomain: "step-sotsuen.firebaseapp.com",
-  projectId: "step-sotsuen",
-  storageBucket: "step-sotsuen.firebasestorage.app",
-  messagingSenderId: "407444481880",
-  appId: "1:407444481880:web:d1b0176dfe20e7a3efa72d",
-  measurementId: "G-BG30SB69RR"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk0fqca2a1xfmZsCLK_zJLSWsp8WV8UVk",
+            authDomain: "step-sotsuen.firebaseapp.com",
+            projectId: "step-sotsuen",
+            storageBucket: "step-sotsuen.firebasestorage.app",
+            messagingSenderId: "407444481880",
+            appId: "1:407444481880:web:d1b0176dfe20e7a3efa72d",
+            measurementId: "G-BG30SB69RR"
+        };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'step-smoke-free';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'step-sotsuen-default';
 
         let state = {
             user: null,
+            isDemo: false,
+            authMode: 'login', // 'login' or 'signup'
             userData: { name: "ゲスト", bio: "", date: new Date().toISOString().split('T')[0], sticks: 20, price: 600 },
-            posts: [],
-            profiles: {}
+            posts: [
+                { id: 'demo1', uid: 'system', content: '卒煙おめでとうございます！今日から一緒に頑張りましょう。', date: new Date().toISOString() }
+            ],
+            profiles: {
+                'system': { name: '公式サポーター' }
+            }
         };
 
-        // UI Helpers
         const showToast = (m) => {
             const t = document.getElementById('toast');
-            t.innerText = m; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+            if (t) {
+                t.innerText = m; t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 3000);
+            }
         };
 
         const toggleUI = (view) => {
-            document.getElementById('loading-screen').style.display = view === 'loading' ? 'flex' : 'none';
-            document.getElementById('auth-gateway').style.display = view === 'auth' ? 'flex' : 'none';
-            document.getElementById('app-root').classList.toggle('active', view === 'app');
+            const loading = document.getElementById('loading-screen');
+            const authGateway = document.getElementById('auth-gateway');
+            const appRoot = document.getElementById('app-root');
+            
+            if(loading) loading.style.display = view === 'loading' ? 'flex' : 'none';
+            if(authGateway) authGateway.style.display = view === 'auth' ? 'flex' : 'none';
+            if(appRoot) appRoot.classList.toggle('active', view === 'app');
         };
 
-        // -------------------------------------------------------------------------
-        // Core Logic
-        // -------------------------------------------------------------------------
-
-        // 1. Listen for Auth changes
+        // --- AUTH FLOW ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 state.user = user;
-                await initAppSession();
-            } else {
-                state.user = null;
-                // Attempt custom token if available, else show gateway
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        toggleUI('loading');
+                state.isDemo = false;
+                await setupApp();
+            } else if (!state.isDemo) {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    toggleUI('loading');
+                    try {
                         await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
+                    } catch (e) {
                         toggleUI('auth');
                     }
-                } catch (e) {
-                    console.error("Initial Auth Error:", e);
+                } else {
                     toggleUI('auth');
                 }
             }
         });
 
-        // 2. Setup Database Listeners & User Data
-        const initAppSession = async () => {
+        const enterDemoMode = () => {
+            console.log("Forcing Demo Mode due to auth restriction.");
+            state.user = { uid: 'demo-user-' + Math.floor(Math.random() * 1000), isAnonymous: true };
+            state.isDemo = true;
+            const badge = document.getElementById('demo-mode-indicator');
+            if(badge) badge.classList.remove('hidden');
+            setupApp();
+        };
+
+        const setupApp = async () => {
             toggleUI('loading');
             const uid = state.user.uid;
             
-            try {
-                // Fetch Profile
-                const userDoc = await getDoc(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'profile'));
-                if (userDoc.exists()) {
-                    state.userData = { ...state.userData, ...userDoc.data() };
+            if (!state.isDemo) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'profile'));
+                    if (userDoc.exists()) {
+                        state.userData = { ...state.userData, ...userDoc.data() };
+                    }
+                    
+                    const qPosts = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'));
+                    onSnapshot(qPosts, (snap) => {
+                        state.posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        renderTimeline();
+                    }, (err) => console.warn("Firestore access denied. Using local state."));
+
+                    const qProfs = query(collection(db, 'artifacts', appId, 'public', 'data', 'profiles'));
+                    onSnapshot(qProfs, (snap) => {
+                        snap.docs.forEach(d => { state.profiles[d.id] = d.data(); });
+                        renderTimeline();
+                    }, (err) => console.warn("Firestore profiles denied."));
+                } catch (e) {
+                    console.warn("Global Firestore catch.");
                 }
-                
-                // Sync UI
-                document.getElementById('cfg-name').value = state.userData.name;
-                document.getElementById('cfg-bio').value = state.userData.bio;
-                document.getElementById('cfg-sticks').value = state.userData.sticks;
-                document.getElementById('cfg-price').value = state.userData.price;
-                document.getElementById('guest-alert').classList.toggle('hidden', !state.user.isAnonymous);
-
-                // Posts Listener
-                const qPosts = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'));
-                onSnapshot(qPosts, (snap) => {
-                    state.posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    renderTimeline();
-                }, (err) => console.error("Firestore Posts Error:", err));
-
-                // Profiles Listener
-                const qProfs = query(collection(db, 'artifacts', appId, 'public', 'data', 'profiles'));
-                onSnapshot(qProfs, (snap) => {
-                    snap.docs.forEach(d => { state.profiles[d.id] = d.data(); });
-                    renderTimeline();
-                }, (err) => console.error("Firestore Profiles Error:", err));
-
-                updateStats();
-                toggleUI('app');
-            } catch (e) {
-                console.error("Session Setup Error:", e);
-                showToast("セッションの開始に失敗しました");
-                toggleUI('app');
             }
+            
+            // UI Sync
+            const nameField = document.getElementById('cfg-name');
+            const bioField = document.getElementById('cfg-bio');
+            const stickField = document.getElementById('cfg-sticks');
+            const priceField = document.getElementById('cfg-price');
+            
+            if(nameField) nameField.value = state.userData.name;
+            if(bioField) bioField.value = state.userData.bio;
+            if(stickField) stickField.value = state.userData.sticks;
+            if(priceField) priceField.value = state.userData.price;
+            
+            const alertBox = document.getElementById('guest-alert');
+            if(alertBox) alertBox.classList.toggle('hidden', !state.user.isAnonymous && !state.isDemo);
+
+            updateStats();
+            renderTimeline();
+            toggleUI('app');
         };
 
         const updateStats = () => {
             const start = new Date(state.userData.date);
             const days = Math.max(0, Math.floor((new Date() - start) / (1000 * 60 * 60 * 24)));
-            document.getElementById('stat-days').innerText = `${days + 1}日目`;
+            const daysEl = document.getElementById('stat-days');
+            const moneyEl = document.getElementById('stat-money');
+            const sticksEl = document.getElementById('stat-sticks');
+            
+            if(daysEl) daysEl.innerText = `${days + 1}日目`;
             const saved = Math.floor(days * (state.userData.sticks / 20) * state.userData.price);
-            document.getElementById('stat-money').innerText = `¥${saved.toLocaleString()}`;
-            document.getElementById('stat-sticks').innerText = `${Math.floor(days * state.userData.sticks)}本`;
+            if(moneyEl) moneyEl.innerText = `¥${saved.toLocaleString()}`;
+            if(sticksEl) sticksEl.innerText = `${Math.floor(days * state.userData.sticks)}本`;
         };
 
         const renderTimeline = () => {
@@ -352,7 +407,7 @@
                     return `
                     <div class="p-4 flex gap-3 bg-white border-b border-gray-50">
                         <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center font-bold text-emerald-600 shrink-0">
-                            ${(prof.name || "優")[0]}
+                            ${(prof.name || "U")[0]}
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-1">
@@ -374,29 +429,76 @@
             } catch(e) { return "---"; }
         };
 
-        // -------------------------------------------------------------------------
-        // Event Listeners
-        // -------------------------------------------------------------------------
+        // --- AUTH UI ACTIONS ---
+        const btnShowLogin = document.getElementById('btn-show-login');
+        const btnBackToGateway = document.getElementById('btn-back-to-gateway');
+        const gatewayButtons = document.getElementById('gateway-buttons');
+        const authForm = document.getElementById('auth-form');
+        const btnToggleAuth = document.getElementById('btn-toggle-auth');
+        const authActionText = document.getElementById('auth-action-text');
 
-        // Guest Login
+        btnShowLogin.addEventListener('click', () => {
+            gatewayButtons.classList.add('hidden');
+            authForm.classList.remove('hidden');
+        });
+
+        btnBackToGateway.addEventListener('click', () => {
+            gatewayButtons.classList.remove('hidden');
+            authForm.classList.add('hidden');
+        });
+
+        btnToggleAuth.addEventListener('click', () => {
+            if(state.authMode === 'login') {
+                state.authMode = 'signup';
+                authActionText.innerText = '新規登録';
+                btnToggleAuth.innerText = '既にアカウントをお持ちの方（ログイン）';
+            } else {
+                state.authMode = 'login';
+                authActionText.innerText = 'ログイン';
+                btnToggleAuth.innerText = 'アカウントを新規作成する';
+            }
+        });
+
+        document.getElementById('btn-execute-auth').addEventListener('click', async () => {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+
+            if(!email || !password) {
+                showToast("メールアドレスとパスワードを入力してください");
+                return;
+            }
+
+            toggleUI('loading');
+            try {
+                if(state.authMode === 'signup') {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    showToast("アカウントを作成しました");
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showToast("ログインしました");
+                }
+            } catch (e) {
+                console.error(e);
+                toggleUI('auth');
+                let msg = "認証エラーが発生しました";
+                if(e.code === 'auth/email-already-in-use') msg = "既に登録されているメールアドレスです";
+                if(e.code === 'auth/wrong-password') msg = "パスワードが間違っています";
+                if(e.code === 'auth/user-not-found') msg = "ユーザーが見つかりません";
+                showToast(msg);
+            }
+        });
+
         document.getElementById('btn-guest-login').addEventListener('click', async () => {
             toggleUI('loading');
             try {
                 await signInAnonymously(auth);
-                // onAuthStateChanged will handle the UI switch
             } catch (e) {
-                console.error("Guest Auth Error:", e);
-                showToast("ゲストログインに失敗しました。再試行してください。");
-                toggleUI('auth');
+                console.warn("Auth restriction detected. Fallback to demo mode.");
+                enterDemoMode();
             }
         });
 
-        // Real Login Placeholder
-        document.getElementById('btn-real-login').addEventListener('click', () => {
-            showToast("現在はゲストログインのみ提供中です");
-        });
-
-        // Nav switch
+        // --- APP UI ACTIONS ---
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const target = btn.dataset.view;
@@ -404,13 +506,16 @@
                 document.getElementById('view-' + target).classList.remove('hidden');
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-emerald-600', 'text-gray-400'));
                 btn.classList.replace('text-gray-400', 'text-emerald-600');
-                document.getElementById('header-title').innerText = target === 'home' ? 'ホーム' : (target === 'notif' ? '通知' : '設定');
+                
+                const titleNode = document.getElementById('header-title');
+                if(titleNode) {
+                    const titleText = target === 'home' ? 'ホーム' : (target === 'notif' ? '通知' : '設定');
+                    titleNode.childNodes[0].textContent = titleText + " ";
+                }
             });
         });
 
-        // FAB & Modal
         document.getElementById('fab').addEventListener('click', () => {
-            if (state.user && state.user.isAnonymous) return showToast("投稿にはログインが必要です");
             document.getElementById('modal-overlay').classList.add('active');
             document.getElementById('modal-textarea').focus();
         });
@@ -420,28 +525,40 @@
             document.getElementById('modal-textarea').value = "";
         });
 
-        // Submit Post
         document.getElementById('btn-submit-post').addEventListener('click', async () => {
-            const txt = document.getElementById('modal-textarea').value.trim();
-            if (!txt || !state.user) return;
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), {
-                    uid: state.user.uid,
-                    content: txt,
-                    date: new Date().toISOString()
-                });
+            const txtField = document.getElementById('modal-textarea');
+            const txt = txtField.value.trim();
+            if (!txt) return;
+            
+            const newPost = { uid: state.user.uid, content: txt, date: new Date().toISOString() };
+            
+            if (state.isDemo) {
+                state.posts.push({ id: Date.now().toString(), ...newPost });
+                state.profiles[state.user.uid] = { name: state.userData.name };
+                renderTimeline();
                 document.getElementById('modal-overlay').classList.remove('active');
-                document.getElementById('modal-textarea').value = "";
+                txtField.value = "";
+                showToast("デモ投稿を反映しました");
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), newPost);
+                
+                // プロフィールも更新/作成（表示用）
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.user.uid), {
+                    name: state.userData.name
+                }, { merge: true });
+
+                document.getElementById('modal-overlay').classList.remove('active');
+                txtField.value = "";
                 showToast("投稿しました");
             } catch (e) {
-                console.error("Post Submission Error:", e);
-                showToast("投稿に失敗しました");
+                showToast("保存エラー: オフラインの可能性があります");
             }
         });
 
-        // Save Settings
         document.getElementById('btn-save-settings').addEventListener('click', async () => {
-            if (state.user && state.user.isAnonymous) return showToast("保存にはログインが必要です");
             const newData = {
                 name: document.getElementById('cfg-name').value,
                 bio: document.getElementById('cfg-bio').value,
@@ -449,26 +566,34 @@
                 price: parseInt(document.getElementById('cfg-price').value) || 600,
                 date: state.userData.date
             };
+
+            if (state.isDemo) {
+                state.userData = newData;
+                updateStats();
+                showToast("反映しました");
+                return;
+            }
+
             try {
+                // ユーザー個人設定
                 await setDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'settings', 'profile'), newData);
+                
+                // 公開用プロフィール（投稿表示用）
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.user.uid), {
-                    name: newData.name, bio: newData.bio, uid: state.user.uid
-                });
+                    name: newData.name
+                }, { merge: true });
+
                 state.userData = newData;
                 updateStats();
                 showToast("保存しました");
             } catch (e) {
-                console.error("Save Settings Error:", e);
-                showToast("保存に失敗しました");
+                showToast("保存エラー");
             }
         });
 
-        // Logout
         document.getElementById('btn-logout').addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                location.reload();
-            } catch (e) { console.error("Logout Error:", e); }
+            if (!state.isDemo) await signOut(auth);
+            location.reload();
         });
     </script>
 </body>
