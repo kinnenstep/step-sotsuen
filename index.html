@@ -329,7 +329,15 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        const firebaseConfig = {
+  apiKey: "AIzaSyBk0fqca2a1xfmZsCLK_zJLSWsp8WV8UVk",
+  authDomain: "step-sotsuen.firebaseapp.com",
+  projectId: "step-sotsuen",
+  storageBucket: "step-sotsuen.firebasestorage.app",
+  messagingSenderId: "407444481880",
+  appId: "1:407444481880:web:d1b0176dfe20e7a3efa72d",
+  measurementId: "G-BG30SB69RR"
+};
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
