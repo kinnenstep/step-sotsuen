@@ -93,18 +93,22 @@
             position: fixed;
             bottom: 100px;
             left: 50%;
-            transform: translateX(-50%) translateY(100px);
+            transform: translateX(-50%) translateY(20px);
             background: #1e293b;
             color: white;
             padding: 12px 24px;
             border-radius: 999px;
             z-index: 3000;
-            transition: transform 0.3s ease;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
             font-size: 14px;
             pointer-events: none;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        #toast.show { transform: translateX(-50%) translateY(0); }
+        #toast.show { 
+            opacity: 1;
+            transform: translateX(-50%) translateY(0); 
+        }
 
         #modal-overlay {
             position: fixed;
@@ -169,6 +173,37 @@
             align-items: center;
             z-index: 1000;
         }
+
+        #auth-gateway {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f8fafc;
+            z-index: 900;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .btn-outline {
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #4b5563;
+        }
+        .btn-outline:active {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .danger-zone {
+            margin-top: 32px;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 24px;
+        }
     </style>
 </head>
 <body>
@@ -176,6 +211,29 @@
     <div id="loading-screen">
         <div class="text-emerald-500 text-4xl mb-4"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
         <div class="font-bold text-gray-400">接続中...</div>
+    </div>
+
+    <!-- 未ログイン時のゲートウェイ -->
+    <div id="auth-gateway">
+        <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] shadow-xl text-center">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6">
+                <i class="fa-solid fa-leaf"></i>
+            </div>
+            <h2 class="text-2xl font-black text-gray-800 mb-2">STEP卒煙へようこそ</h2>
+            <p class="text-gray-500 text-sm mb-8">仲間と一緒に、新しい自分へ。</p>
+            
+            <button id="btn-real-login" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all mb-3">
+                会員登録 / ログイン
+            </button>
+            
+            <button id="btn-guest-login" class="w-full btn-outline font-bold py-4 rounded-2xl active:scale-[0.98] transition-all mb-4">
+                ゲストとして閲覧
+            </button>
+
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                ※ゲストは投稿や設定保存ができません
+            </p>
+        </div>
     </div>
 
     <div id="toast">完了しました</div>
@@ -222,6 +280,14 @@
         <!-- Settings View -->
         <div id="view-setting" class="scrollable hidden p-4 pb-24">
             <h2 class="text-lg font-bold mb-6 px-1 text-gray-800">プロフィール・禁煙設定</h2>
+            
+            <div id="guest-alert" class="hidden mb-6 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                <p class="text-xs font-bold text-amber-700 leading-relaxed">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> 現在ゲストモードです。設定の保存には会員登録が必要です。
+                </p>
+                <button onclick="logout()" class="mt-3 text-xs font-black text-amber-800 uppercase tracking-widest">ログイン画面へ</button>
+            </div>
+
             <div class="space-y-1">
                 <div class="form-group">
                     <label class="form-label">ユーザー名</label>
@@ -254,8 +320,13 @@
                 </div>
                 
                 <div class="pt-4">
-                    <button onclick="updateSettings()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-transform">設定を保存する</button>
+                    <button id="btn-save-settings" onclick="updateSettings()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-transform">設定を保存する</button>
                     <div class="mt-4 text-[10px] text-gray-400 text-center font-bold uppercase tracking-widest">User ID: <span id="display-uid">---</span></div>
+                </div>
+
+                <div class="danger-zone space-y-3">
+                    <button onclick="logout()" class="w-full py-4 text-gray-500 font-bold border-2 border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors">ログアウト</button>
+                    <button onclick="deleteAccount()" class="w-full py-4 text-red-400 font-bold hover:text-red-600 transition-colors text-sm">アカウントを削除する</button>
                 </div>
             </div>
         </div>
@@ -344,19 +415,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, addDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, addDoc, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Setup
-        const firebaseConfig = {
-  apiKey: "AIzaSyBk0fqca2a1xfmZsCLK_zJLSWsp8WV8UVk",
-  authDomain: "step-sotsuen.firebaseapp.com",
-  projectId: "step-sotsuen",
-  storageBucket: "step-sotsuen.firebasestorage.app",
-  messagingSenderId: "407444481880",
-  appId: "1:407444481880:web:d1b0176dfe20e7a3efa72d",
-  measurementId: "G-BG30SB69RR"
-};
+        const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -366,30 +428,66 @@
             currentUser: null,
             userData: { name: "ゲスト", bio: "禁煙頑張ります！", date: new Date().toISOString().split('T')[0], sticks: 20, price: 600 },
             posts: [],
-            notifs: [],
             profiles: {}
         };
 
         const getPublicCollection = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
         const getPrivateDoc = (uid) => doc(db, 'artifacts', appId, 'users', uid, 'settings', 'profile');
 
-        const init = async () => {
+        const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } catch (tokenErr) {
+                        showAuthGateway();
+                    }
                 } else {
-                    await signInAnonymously(auth);
+                    showAuthGateway();
                 }
             } catch (error) {
-                console.error("Auth error", error);
+                showAuthGateway();
             }
         };
+
+        const showAuthGateway = () => {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('auth-gateway').style.display = 'flex';
+        };
+
+        const hideAuthGateway = () => {
+            document.getElementById('auth-gateway').style.display = 'none';
+        };
+
+        // イベントリスナー
+        document.getElementById('btn-guest-login').addEventListener('click', async () => {
+            try {
+                document.getElementById('loading-screen').style.display = 'flex';
+                await signInAnonymously(auth);
+                hideAuthGateway();
+            } catch (err) {
+                showToast("ログインに失敗しました");
+            }
+        });
+
+        document.getElementById('btn-real-login').addEventListener('click', () => {
+            showToast("現在、デモ版のため会員登録は「ゲストとして利用」をご利用ください。");
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 state.currentUser = user;
                 document.getElementById('display-uid').innerText = user.uid;
                 
+                // ゲストアラートの表示制御
+                const isGuest = user.isAnonymous;
+                document.getElementById('guest-alert').style.display = isGuest ? 'block' : 'none';
+                if (isGuest) {
+                    document.getElementById('btn-save-settings').classList.add('opacity-50', 'pointer-events-none');
+                } else {
+                    document.getElementById('btn-save-settings').classList.remove('opacity-50', 'pointer-events-none');
+                }
+
                 const userDoc = await getDoc(getPrivateDoc(user.uid));
                 if (userDoc.exists()) {
                     state.userData = userDoc.data();
@@ -412,7 +510,7 @@
                 onSnapshot(getPublicCollection('posts'), (snapshot) => {
                     state.posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderTimeline();
-                }, (err) => console.error(err));
+                });
 
                 onSnapshot(getPublicCollection('profiles'), (snapshot) => {
                     snapshot.docs.forEach(doc => { state.profiles[doc.id] = doc.data(); });
@@ -420,7 +518,10 @@
                 });
 
                 document.getElementById('loading-screen').style.display = 'none';
+                hideAuthGateway();
                 renderDashboard();
+            } else {
+                showAuthGateway();
             }
         });
 
@@ -451,7 +552,6 @@
                 .filter(p => !p.parentId)
                 .sort((a,b) => new Date(b.date) - new Date(a.date));
             homeList.innerHTML = roots.map(p => createCardHTML(p)).join('');
-            if (window.activeThreadId) window.openThread(window.activeThreadId);
         }
 
         window.createCardHTML = (p, isThreadContext = false) => {
@@ -486,75 +586,55 @@
 
         window.switchView = (view) => {
             ['home', 'notif', 'setting'].forEach(v => {
-                document.getElementById('view-' + v).classList.add('hidden');
-                document.getElementById('nav-' + v).classList.replace('text-emerald-600', 'text-gray-400');
+                const el = document.getElementById('view-' + v);
+                const nav = document.getElementById('nav-' + v);
+                if (el) el.classList.add('hidden');
+                if (nav) nav.classList.replace('text-emerald-600', 'text-gray-400');
             });
-            document.getElementById('view-' + view).classList.remove('hidden');
-            document.getElementById('nav-' + view).classList.replace('text-gray-400', 'text-emerald-600');
+            const activeView = document.getElementById('view-' + view);
+            const activeNav = document.getElementById('nav-' + view);
+            if (activeView) activeView.classList.remove('hidden');
+            if (activeNav) activeNav.classList.replace('text-gray-400', 'text-emerald-600');
             document.getElementById('header-title').innerText = view === 'home' ? 'ホーム' : (view === 'notif' ? '通知' : '設定');
         };
 
         window.openThread = (id) => {
             const root = state.posts.find(p => p.id === id);
             if(!root) return;
-            window.activeThreadId = id;
             document.getElementById('detail-parent').innerHTML = createCardHTML(root, true);
             const repliesContainer = document.getElementById('detail-replies');
             repliesContainer.innerHTML = '';
             
-            const renderTree = (parentId, container) => {
-                const children = state.posts.filter(p => p.parentId === parentId).sort((a,b) => new Date(a.date) - new Date(b.date));
-                children.forEach(child => {
-                    const wrapper = document.createElement('div');
-                    wrapper.innerHTML = createCardHTML(child, true);
-                    const branch = document.createElement('div');
-                    branch.className = "reply-branch";
-                    renderTree(child.id, branch);
-                    wrapper.appendChild(branch);
-                    container.appendChild(wrapper);
-                });
-            };
+            const children = state.posts.filter(p => p.parentId === id).sort((a,b) => new Date(a.date) - new Date(b.date));
+            children.forEach(child => {
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = createCardHTML(child, true);
+                repliesContainer.appendChild(wrapper);
+            });
             
-            renderTree(id, repliesContainer);
             document.getElementById('detail-layer').classList.add('active');
         };
 
-        window.closeDetail = () => {
-            document.getElementById('detail-layer').classList.remove('active');
-            window.activeThreadId = null;
-        };
+        window.closeDetail = () => document.getElementById('detail-layer').classList.remove('active');
 
         window.openProfile = (uid) => {
             const pData = state.profiles[uid] || (uid === state.currentUser?.uid ? state.userData : null);
             if(!pData) return;
-
             const days = calculateDays(pData.date);
             document.getElementById('profile-name').innerText = pData.name;
             document.getElementById('profile-bio').innerText = pData.bio || "自己紹介なし";
             document.getElementById('profile-days').innerText = `${days + 1}日目`;
             document.getElementById('profile-icon').innerText = pData.name[0];
-            
-            const pRank = document.getElementById('profile-rank');
-            if (days >= 30) {
-                pRank.innerText = "卒煙マスター";
-                pRank.className = "inline-block text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full border border-purple-100 mt-1 uppercase";
-            } else if (days >= 7) {
-                pRank.innerText = "継続エキスパート";
-                pRank.className = "inline-block text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-100 mt-1 uppercase";
-            } else {
-                pRank.innerText = "卒煙ビギナー";
-                pRank.className = "inline-block text-[10px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-100 mt-1 uppercase";
-            }
-
-            const userPosts = state.posts.filter(p => p.uid === uid && !p.parentId).sort((a,b) => new Date(b.date) - new Date(a.date));
-            document.getElementById('profile-posts-list').innerHTML = userPosts.map(p => createCardHTML(p, true)).join('') || '<div class="p-10 text-center text-gray-300 font-bold text-sm">投稿なし</div>';
-            
+            document.getElementById('profile-posts-list').innerHTML = state.posts.filter(p => p.uid === uid && !p.parentId).map(p => createCardHTML(p, true)).join('');
             document.getElementById('profile-layer').classList.add('active');
         };
 
         window.closeProfile = () => document.getElementById('profile-layer').classList.remove('active');
 
         window.openPostModal = (replyId = null) => {
+            if (state.currentUser?.isAnonymous) {
+                return showToast("投稿するには会員登録が必要です");
+            }
             window.currentReplyTargetId = replyId;
             document.getElementById('modal-overlay').classList.add('active');
             document.getElementById('modal-textarea').focus();
@@ -568,37 +648,39 @@
         window.handlePostSubmit = async () => {
             const content = document.getElementById('modal-textarea').value.trim();
             if(!content || !state.currentUser) return;
-
-            await addDoc(getPublicCollection('posts'), {
-                uid: state.currentUser.uid,
-                user: state.userData.name,
-                content: content,
-                date: new Date().toISOString(),
-                likes: [],
-                parentId: window.currentReplyTargetId || null
-            });
-
-            closePostModal();
-            showToast("送信しました");
+            try {
+                await addDoc(getPublicCollection('posts'), {
+                    uid: state.currentUser.uid,
+                    user: state.userData.name,
+                    content: content,
+                    date: new Date().toISOString(),
+                    likes: [],
+                    parentId: window.currentReplyTargetId || null
+                });
+                closePostModal();
+                showToast("送信しました");
+            } catch (err) {
+                showToast("送信に失敗しました");
+            }
         };
 
         window.handleLike = async (postId) => {
+            if (state.currentUser?.isAnonymous) return showToast("いいねには会員登録が必要です");
             const p = state.posts.find(x => x.id === postId);
             if(!p || !state.currentUser) return;
-            
             let newLikes = p.likes || [];
             if(newLikes.includes(state.currentUser.uid)) {
                 newLikes = newLikes.filter(u => u !== state.currentUser.uid);
             } else {
                 newLikes.push(state.currentUser.uid);
             }
-
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId), {
-                likes: newLikes
-            });
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId), { likes: newLikes });
+            } catch (err) {}
         };
 
         window.updateSettings = async () => {
+            if (state.currentUser?.isAnonymous) return showToast("保存するには会員登録が必要です");
             const newName = document.getElementById('cfg-name').value.trim();
             const newBio = document.getElementById('cfg-bio').value.trim();
             const newDate = document.getElementById('cfg-date').value;
@@ -606,17 +688,38 @@
             const newPrice = parseInt(document.getElementById('cfg-price').value);
 
             if(!newName) return showToast("名前を入力してください");
-
             state.userData = { name: newName, bio: newBio, date: newDate, sticks: newSticks, price: newPrice };
-            
-            await setDoc(getPrivateDoc(state.currentUser.uid), state.userData);
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.currentUser.uid), {
-                name: newName, bio: newBio, date: newDate, uid: state.currentUser.uid
-            }, { merge: true });
+            try {
+                await setDoc(getPrivateDoc(state.currentUser.uid), state.userData);
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.currentUser.uid), {
+                    name: newName, bio: newBio, date: newDate, uid: state.currentUser.uid
+                }, { merge: true });
+                renderDashboard();
+                showToast("保存しました");
+                switchView('home');
+            } catch (err) {
+                showToast("保存に失敗しました");
+            }
+        };
 
-            renderDashboard();
-            showToast("保存しました");
-            switchView('home');
+        window.logout = async () => {
+            await signOut(auth);
+            location.reload();
+        };
+
+        window.deleteAccount = async () => {
+            if (!confirm("本当にアカウントを削除しますか？\nこれまでの禁煙データや投稿はすべて失われます。")) return;
+            try {
+                const uid = state.currentUser.uid;
+                // 公開データの削除
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid));
+                // 認証ユーザーの削除
+                await deleteUser(state.currentUser);
+                showToast("アカウントを削除しました");
+                setTimeout(() => location.reload(), 1500);
+            } catch (err) {
+                showToast("削除に失敗しました。再ログイン後に試してください。");
+            }
         };
 
         function calculateDays(startDateStr) {
@@ -636,10 +739,10 @@
             const t = document.getElementById('toast');
             t.innerText = m;
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
+            setTimeout(() => { t.classList.remove('show'); }, 2500);
         }
 
-        init();
+        initAuth();
     </script>
 </body>
 </html>
