@@ -105,27 +105,18 @@
             overflow-y: auto;
         }
 
-        /* 修正: z-indexを調整して重なりバグを解消 */
         #thread-overlay { z-index: 500; }
         #profile-overlay { z-index: 600; }
-        #modal-overlay { z-index: 700; } /* 投稿用が一番上 */
+        #modal-overlay { z-index: 700; }
 
         #modal-overlay, #thread-overlay, #profile-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4);
             display: none;
+            cursor: pointer; /* 背景クリックを意識させる */
         }
         #modal-overlay.active, #thread-overlay.active, #profile-overlay.active { display: block; }
-
-        .reply-branch {
-            position: absolute;
-            left: -12px;
-            top: -16px;
-            bottom: 16px;
-            width: 2px;
-            background: #e5e7eb;
-        }
 
         .avatar-img {
             width: 100%;
@@ -137,22 +128,50 @@
         .demo-badge {
             background: #fee2e2;
             color: #ef4444;
-            font-size: 10px;
-            padding: 2px 8px;
+            font-size: 9px;
+            padding: 2px 6px;
             border-radius: 4px;
-            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: 10px;
+            right: calc(50% - 18px);
+            width: 10px;
+            height: 10px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+        }
+        .notif-badge.active {
+            display: block;
+        }
+
+        /* Profile Layout adjustments */
+        #profile-inner-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 2.5rem 2.5rem 0 0;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            cursor: default; /* 内部はデフォルトカーソル */
         }
     </style>
 </head>
 <body>
 
-    <!-- Loading Screen -->
     <div id="loading-screen">
         <div class="text-emerald-500 text-4xl mb-4"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
         <div class="font-bold text-gray-400">接続中...</div>
     </div>
 
-    <!-- Auth Gateway -->
     <div id="auth-gateway">
         <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] shadow-xl text-center">
             <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6">
@@ -177,7 +196,7 @@
                 <button id="btn-show-login" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg">
                     ログイン / 会員登録
                 </button>
-                <button id="btn-guest-login" class="w-full border-2 border-gray-100 bg-white text-gray-500 font-bold py-4 rounded-2xl">
+                <button id="btn-guest-login" class="w-full border-2 border-gray-100 bg-white text-gray-500 font-bold py-4 rounded-2xl hover:bg-gray-50 transition">
                     ゲストとして利用
                 </button>
             </div>
@@ -190,21 +209,29 @@
     <div id="toast">完了しました</div>
 
     <div id="app-root" class="app-container">
-        <!-- Header -->
-        <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between shrink-0">
-            <h1 id="header-title" class="text-xl font-bold text-gray-800 flex items-center">
-                ホーム
-                <span id="demo-mode-indicator" class="demo-badge hidden">デモモード</span>
-            </h1>
-            <div id="user-rank-badge" class="text-[11px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full border border-emerald-100">
+        <!-- 修正: ヘッダータイトルを中央配置、クリックでホームへ -->
+        <header class="bg-white border-b border-gray-100 h-14 shrink-0 relative flex items-center justify-between px-4 z-20">
+            <!-- 左側（空白用） -->
+            <div class="w-16"></div>
+
+            <!-- 中央タイトル -->
+            <div id="header-logo-area" class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center cursor-pointer active:scale-95 transition-transform">
+                <h1 class="text-xl font-black text-emerald-600 flex items-center gap-1">
+                    <i class="fa-solid fa-leaf text-lg"></i> STEP卒煙
+                </h1>
+                <span id="demo-mode-indicator" class="demo-badge hidden mt-0.5">デモモード</span>
+            </div>
+
+            <!-- 右側ランクバッジ -->
+            <div id="user-rank-badge" class="text-[11px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full border border-emerald-100 max-w-[120px] truncate text-center">
                 卒煙ビギナー
             </div>
         </header>
 
-        <!-- Home View -->
+        <!-- View: Home -->
         <div id="view-home" class="view-content scrollable">
             <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 m-4 p-6 rounded-[2.5rem] text-white shadow-xl">
-                <div class="text-4xl font-black mb-4" id="stat-days">1日目</div>
+                <div class="text-3xl font-black mb-4 leading-tight" id="stat-days">卒煙歴0日</div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-white/20 p-3 rounded-2xl">
                         <div class="text-[10px] font-black uppercase tracking-widest mb-1">節約金額</div>
@@ -219,14 +246,18 @@
             <div id="home-posts" class="divide-y divide-gray-50 pb-24"></div>
         </div>
 
-        <!-- Notif View -->
+        <!-- View: Notif -->
         <div id="view-notif" class="view-content scrollable hidden">
+            <div class="p-4 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+                <h3 class="font-bold text-sm text-gray-500">お知らせ</h3>
+                <button id="btn-clear-notif" class="text-[10px] font-bold text-red-400 border border-red-100 px-2 py-1 rounded-lg">すべて削除</button>
+            </div>
             <div id="notif-list" class="divide-y divide-gray-50">
                 <div class="p-10 text-center text-gray-300 font-bold">通知はありません</div>
             </div>
         </div>
 
-        <!-- Setting View -->
+        <!-- View: Setting -->
         <div id="view-setting" class="view-content scrollable hidden p-4 pb-24">
             <h2 class="text-lg font-bold mb-6 text-gray-800">設定</h2>
             
@@ -265,23 +296,31 @@
                 </div>
                 
                 <button id="btn-save-settings" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg mt-4">設定を保存</button>
+
+                <!-- Block Management Section -->
+                <div class="mt-8">
+                    <h3 class="text-sm font-bold text-gray-400 mb-4 px-2">ブロック中のユーザー</h3>
+                    <div id="block-list" class="bg-gray-50 rounded-2xl p-4 divide-y divide-gray-200">
+                        <p class="text-xs text-center text-gray-400 py-2">ブロックしているユーザーはいません</p>
+                    </div>
+                </div>
                 
                 <div class="pt-10 space-y-2">
-                    <button id="btn-logout" class="w-full py-4 text-gray-400 font-bold border border-gray-100 rounded-2xl">ログアウト</button>
-                    <button id="btn-delete-account" class="w-full py-4 text-red-400 font-bold text-xs">アカウントを削除する</button>
+                    <button id="btn-logout" class="w-full py-4 text-gray-500 font-bold border border-gray-200 rounded-2xl hover:bg-gray-50">ログアウト</button>
+                    <button id="btn-delete-account" class="w-full py-4 text-red-400 font-bold text-xs hover:underline">アカウントを完全に削除する</button>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation -->
         <nav class="bottom-nav">
-            <button data-view="home" class="nav-btn flex-1 flex flex-col items-center text-emerald-600">
+            <button data-view="home" class="nav-btn flex-1 flex flex-col items-center text-emerald-600 relative">
                 <i class="fa-solid fa-house"></i><span class="text-[10px] mt-1 font-bold">ホーム</span>
             </button>
-            <button data-view="notif" class="nav-btn flex-1 flex flex-col items-center text-gray-400">
+            <button data-view="notif" class="nav-btn flex-1 flex flex-col items-center text-gray-400 relative">
                 <i class="fa-solid fa-bell"></i><span class="text-[10px] mt-1 font-bold">通知</span>
+                <div id="notif-red-dot" class="notif-badge"></div>
             </button>
-            <button data-view="setting" class="nav-btn flex-1 flex flex-col items-center text-gray-400">
+            <button data-view="setting" class="nav-btn flex-1 flex flex-col items-center text-gray-400 relative">
                 <i class="fa-solid fa-user-gear"></i><span class="text-[10px] mt-1 font-bold">設定</span>
             </button>
         </nav>
@@ -289,9 +328,10 @@
         <button id="fab" class="post-button"><i class="fa-solid fa-plus text-2xl"></i></button>
     </div>
 
-    <!-- Post Modal -->
-    <div id="modal-overlay" class="overlay-bg">
-        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 h-[70vh] flex flex-col modal-content" onclick="event.stopPropagation()">
+    <!-- Modals & Overlays -->
+    <!-- ウィンドウ外クリックで閉じるように onclickを追加 -->
+    <div id="modal-overlay">
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 h-[70vh] flex flex-col cursor-default" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-6">
                 <button id="btn-close-modal" class="text-gray-400 font-bold">閉じる</button>
                 <div id="reply-target-info" class="text-xs font-bold text-emerald-600 hidden">返信先: <span></span></div>
@@ -301,9 +341,8 @@
         </div>
     </div>
 
-    <!-- Thread View Modal -->
-    <div id="thread-overlay" class="overlay-bg">
-        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-0 h-[90vh] flex flex-col overflow-hidden modal-content" onclick="event.stopPropagation()">
+    <div id="thread-overlay">
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-0 h-[90vh] flex flex-col overflow-hidden cursor-default" onclick="event.stopPropagation()">
             <div class="p-4 border-b flex justify-between items-center bg-white sticky top-0 z-10">
                 <button id="btn-close-thread" class="text-gray-400 font-bold">閉じる</button>
                 <h3 class="font-bold">スレッド</h3>
@@ -313,48 +352,71 @@
         </div>
     </div>
 
-    <!-- Profile Modal -->
-    <div id="profile-overlay" class="overlay-bg">
-        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-8 h-[60vh] flex flex-col items-center text-center modal-content" onclick="event.stopPropagation()">
-            <button id="btn-close-profile" class="absolute top-6 left-6 text-gray-400 font-bold">閉じる</button>
-            <div id="prof-avatar" class="w-24 h-24 bg-emerald-100 rounded-3xl mb-4 overflow-hidden flex items-center justify-center text-3xl font-bold text-emerald-600"></div>
-            <h2 id="prof-name" class="text-2xl font-black text-gray-800"></h2>
-            <div id="prof-smoke-history" class="text-emerald-600 font-bold text-sm mb-4 bg-emerald-50 px-4 py-1 rounded-full"></div>
-            <p id="prof-bio" class="text-gray-500 text-sm leading-relaxed max-w-xs"></p>
+    <div id="profile-overlay">
+        <div id="profile-inner-container" onclick="event.stopPropagation()">
+            <div class="p-4 border-b flex justify-between items-center shrink-0">
+                <button id="btn-close-profile" class="text-gray-400 font-bold">閉じる</button>
+                <h3 class="font-bold text-sm">プロフィール</h3>
+                <div class="w-10"></div>
+            </div>
+            <div class="scrollable">
+                <div class="p-8 flex flex-col items-center text-center">
+                    <div id="prof-avatar" class="w-24 h-24 bg-emerald-100 rounded-3xl mb-4 overflow-hidden flex items-center justify-center text-3xl font-bold text-emerald-600"></div>
+                    <h2 id="prof-name" class="text-2xl font-black text-gray-800"></h2>
+                    <div id="prof-smoke-history" class="text-emerald-600 font-bold text-sm mb-4 bg-emerald-50 px-4 py-1 rounded-full"></div>
+                    <p id="prof-bio" class="text-gray-500 text-sm leading-relaxed max-w-xs mb-6"></p>
+                    
+                    <div id="profile-actions" class="w-full max-w-xs mb-8">
+                        <button id="btn-block-user" class="w-full py-3 bg-red-50 text-red-500 font-bold rounded-2xl flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-ban"></i> このユーザーをブロック
+                        </button>
+                    </div>
+
+                    <div class="w-full text-left">
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 border-b pb-2">この人の投稿</h4>
+                        <div id="prof-posts" class="divide-y divide-gray-50"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, updateDoc, arrayUnion, arrayRemove, deleteDoc, writeBatch, getDocs, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Global configuration
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'step-sotsuen-default';
         const firebaseConfig = {
-  apiKey: "AIzaSyBk0fqca2a1xfmZsCLK_zJLSWsp8WV8UVk",
-  authDomain: "step-sotsuen.firebaseapp.com",
-  projectId: "step-sotsuen",
-  storageBucket: "step-sotsuen.firebasestorage.app",
-  messagingSenderId: "407444481880",
-  appId: "1:407444481880:web:d1b0176dfe20e7a3efa72d",
-  measurementId: "G-BG30SB69RR"
-};
+            apiKey: "AIzaSyBk0fqca2a1xfmZsCLK_zJLSWsp8WV8UVk",
+            authDomain: "step-sotsuen.firebaseapp.com",
+            projectId: "step-sotsuen",
+            storageBucket: "step-sotsuen.firebasestorage.app",
+            messagingSenderId: "407444481880",
+            appId: "1:407444481880:web:d1b0176dfe20e7a3efa72d",
+            measurementId: "G-BG30SB69RR"
+        };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'step-sotsuen-default';
 
         let state = {
             user: null,
             isDemo: false,
             authMode: 'login',
-            userData: { name: "ゲスト", bio: "", date: new Date().toISOString(), sticks: 20, price: 600, avatar: null },
+            userData: { name: "ゲスト", bio: "デモモードで閲覧中", date: new Date().toISOString(), sticks: 20, price: 600, avatar: null, blocks: [] },
             posts: [],
-            profiles: {},
             notifications: [],
-            replyTarget: null
+            replyTarget: null,
+            currentThreadRootId: null,
+            currentViewUid: null 
         };
 
-        // --- UTILS ---
+        let statsTimer = null;
+
+        // UI Helpers
         const showToast = (m) => {
             const t = document.getElementById('toast');
             if(!t) return;
@@ -369,392 +431,536 @@
         };
 
         const getSmokeHistory = (startDate) => {
-            const diff = new Date() - new Date(startDate);
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            if (days < 0) return "卒煙準備中";
-            if (days < 100) return `${days + 1}日目`;
-            const months = Math.floor(days / 30.44);
-            if (months < 12) return `${months}ヶ月目`;
-            const years = Math.floor(days / 365.25);
-            return `${years}年目〜`;
+            const now = new Date();
+            const start = new Date(startDate);
+            const diffMs = now - start;
+            if (diffMs < 0) return "卒煙準備中";
+            const diffDay = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            if (diffDay < 100) return `卒煙歴${diffDay}日`;
+            const diffMonth = Math.floor(diffDay / 30.44);
+            if (diffMonth < 12) return `卒煙歴${diffMonth}ヶ月`;
+            return `卒煙歴${Math.floor(diffDay / 365.25)}年`;
         };
 
-        const compressImage = async (file) => {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_SIZE = 120;
-                        let w = img.width, h = img.height;
-                        if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
-                        else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
-                        canvas.width = w; canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
+        const getFullStatsText = (startDate) => {
+            const now = new Date();
+            const start = new Date(startDate);
+            const diffMs = now - start;
+            if (diffMs < 0) return "卒煙準備中";
+            const diffSecTotal = Math.floor(diffMs / 1000);
+            const diffMinTotal = Math.floor(diffSecTotal / 60);
+            const diffHourTotal = Math.floor(diffMinTotal / 60);
+            const diffDay = Math.floor(diffHourTotal / 24);
+            const hours = diffHourTotal % 24;
+            const mins = diffMinTotal % 60;
+            const secs = diffSecTotal % 60;
+            let label = (diffDay < 100) ? `${diffDay}日` : (Math.floor(diffDay/30.44) < 12) ? `${Math.floor(diffDay/30.44)}ヶ月` : `${Math.floor(diffDay/365.25)}年`;
+            return `卒煙歴${label}<br><span class="text-sm font-normal opacity-80">${diffDay}日 ${hours}時 ${mins}分 ${secs}秒</span>`;
         };
 
         // --- AUTH ---
+        const initAuthFlow = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try { await signInWithCustomToken(auth, __initial_auth_token); } catch(e) { await signInAnonymously(auth); }
+            }
+        };
+        initAuthFlow();
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 state.user = user;
+                state.isDemo = user.isAnonymous;
                 await setupApp();
             } else {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    try { await signInWithCustomToken(auth, __initial_auth_token); } 
-                    catch { toggleUI('auth'); }
-                } else {
-                    toggleUI('auth');
-                }
+                toggleUI('auth');
             }
         });
 
         const setupApp = async () => {
             toggleUI('loading');
             const uid = state.user.uid;
+            
+            if (!state.isDemo) {
+                onSnapshot(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'profile'), (snap) => {
+                    if (snap.exists()) {
+                        state.userData = { ...state.userData, blocks: [], ...snap.data() };
+                        syncSettingsUI();
+                        updateStats();
+                        renderHomePosts(); 
+                    }
+                });
+                
+                onSnapshot(query(collection(db, 'artifacts', appId, 'users', uid, 'notifications')), (snap) => {
+                    state.notifications = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
+                    renderNotifications();
+                    document.getElementById('notif-red-dot').classList.toggle('active', state.notifications.length > 0);
+                });
+            } else {
+                syncSettingsUI();
+                updateStats();
+            }
 
-            onSnapshot(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'profile'), (snap) => {
-                if (snap.exists()) {
-                    state.userData = { ...state.userData, ...snap.data() };
-                    syncSettingsUI();
-                    updateStats();
-                }
-            });
-
-            onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'posts')), (snap) => {
+            const postsQuery = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), orderBy('date', 'desc'));
+            onSnapshot(postsQuery, (snap) => {
                 state.posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderTimeline();
-                if (document.getElementById('thread-overlay').classList.contains('active')) {
-                    renderThread(document.getElementById('thread-overlay').dataset.rootId);
-                }
-            });
-
-            onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'profiles')), (snap) => {
-                snap.docs.forEach(d => { state.profiles[d.id] = d.data(); });
-                renderTimeline();
-            });
-
-            onSnapshot(query(collection(db, 'artifacts', appId, 'users', uid, 'notifications')), (snap) => {
-                state.notifications = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
-                renderNotifications();
+                renderHomePosts();
+                if (state.currentThreadRootId) renderThread(state.currentThreadRootId);
+                if (state.currentViewUid) renderProfilePosts(state.currentViewUid);
             });
 
             toggleUI('app');
+            startStatsTimer();
         };
 
-        const syncSettingsUI = () => {
-            document.getElementById('cfg-name').value = state.userData.name || "";
-            document.getElementById('cfg-bio').value = state.userData.bio || "";
-            document.getElementById('cfg-sticks').value = state.userData.sticks || 20;
-            document.getElementById('cfg-price').value = state.userData.price || 600;
-            document.getElementById('cfg-date').value = (state.userData.date || "").substring(0, 16);
-            
-            const avatarBox = document.getElementById('cfg-avatar-display');
-            if (state.userData.avatar) {
-                avatarBox.innerHTML = `<img src="${state.userData.avatar}" class="avatar-img">`;
-            } else {
-                avatarBox.innerHTML = `<i class="fa-solid fa-user"></i>`;
-            }
-
-            document.getElementById('user-rank-badge').innerText = getSmokeHistory(state.userData.date);
-        };
-
-        // --- CORE LOGIC ---
         const updateStats = () => {
+            const now = new Date();
             const start = new Date(state.userData.date);
-            const days = Math.max(0, Math.floor((new Date() - start) / (1000 * 60 * 60 * 24)));
-            document.getElementById('stat-days').innerText = getSmokeHistory(state.userData.date);
-            const saved = Math.floor(days * (state.userData.sticks / 20) * state.userData.price);
-            document.getElementById('stat-money').innerText = `¥${saved.toLocaleString()}`;
-            document.getElementById('stat-sticks').innerText = `${Math.floor(days * state.userData.sticks)}本`;
+            const diffMs = now - start;
+            if (diffMs < 0) return;
+            const diffDay = diffMs / (1000 * 60 * 60 * 24);
+            const savedMoney = Math.floor(diffDay * (state.userData.sticks / 20) * state.userData.price);
+            const avoidedSticks = Math.floor(diffDay * state.userData.sticks);
+            
+            document.getElementById('stat-days').innerHTML = getFullStatsText(state.userData.date);
+            document.getElementById('stat-money').innerText = `¥${savedMoney.toLocaleString()}`;
+            document.getElementById('stat-sticks').innerText = `${avoidedSticks.toLocaleString()}本`;
         };
 
-        window.handleLike = async (postId, e) => {
-            if (e) e.stopPropagation();
-            if (state.user.isAnonymous) return showToast("ログインが必要です");
-            const post = state.posts.find(p => p.id === postId);
-            const isLiked = post.likes?.includes(state.user.uid);
-            
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId), {
-                likes: isLiked ? arrayRemove(state.user.uid) : arrayUnion(state.user.uid)
-            });
+        const startStatsTimer = () => {
+            if (statsTimer) clearInterval(statsTimer);
+            statsTimer = setInterval(updateStats, 1000);
+        };
 
-            if (!isLiked && post.uid !== state.user.uid) {
-                sendNotification(post.uid, "いいね", `${state.userData.name}さんがあなたの投稿にいいねしました`, postId);
+        const syncSettingsUI = async () => {
+            document.getElementById('cfg-name').value = state.userData.name;
+            document.getElementById('cfg-bio').value = state.userData.bio;
+            document.getElementById('cfg-date').value = state.userData.date.slice(0, 16);
+            document.getElementById('cfg-sticks').value = state.userData.sticks;
+            document.getElementById('cfg-price').value = state.userData.price;
+            document.getElementById('demo-mode-indicator').classList.toggle('hidden', !state.isDemo);
+            
+            const display = document.getElementById('cfg-avatar-display');
+            display.innerHTML = state.userData.avatar ? `<img src="${state.userData.avatar}" class="avatar-img">` : `<i class="fa-solid fa-user"></i>`;
+
+            // Block List with Usernames
+            const blContainer = document.getElementById('block-list');
+            if (!state.userData.blocks || state.userData.blocks.length === 0) {
+                blContainer.innerHTML = '<p class="text-xs text-center text-gray-400 py-2">ブロックしているユーザーはいません</p>';
+            } else {
+                let html = '';
+                for (const bUid of state.userData.blocks) {
+                    const post = state.posts.find(p => p.uid === bUid);
+                    const name = post ? post.userName : 'Unknown';
+                    html += `
+                        <div class="flex justify-between items-center py-2">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-gray-600">${name}</span>
+                                <span class="text-[8px] text-gray-400">${bUid}</span>
+                            </div>
+                            <button onclick="window.unblockUser('${bUid}')" class="text-[10px] bg-white border border-gray-200 px-3 py-1 rounded-full text-gray-500 font-bold">解除</button>
+                        </div>
+                    `;
+                }
+                blContainer.innerHTML = html;
             }
-        };
-
-        const sendNotification = async (targetUid, type, text, postId) => {
-            await addDoc(collection(db, 'artifacts', appId, 'users', targetUid, 'notifications'), {
-                type, text, postId, date: new Date().toISOString(), fromUid: state.user.uid
-            });
-        };
-
-        window.openReply = (postId, name, e) => {
-            if (e) e.stopPropagation();
-            state.replyTarget = { id: postId, name };
-            document.getElementById('reply-target-info').classList.remove('hidden');
-            document.getElementById('reply-target-info').querySelector('span').innerText = name;
-            document.getElementById('modal-overlay').classList.add('active');
-            document.getElementById('modal-textarea').focus();
-        };
-
-        window.showProfile = (uid, e) => {
-            if (e) e.stopPropagation();
-            const prof = state.profiles[uid] || { name: "ユーザー" };
-            const overlay = document.getElementById('profile-overlay');
-            const avatar = document.getElementById('prof-avatar');
-            
-            if (prof.avatar) avatar.innerHTML = `<img src="${prof.avatar}" class="avatar-img">`;
-            else avatar.innerText = (prof.name || "U")[0];
-
-            document.getElementById('prof-name').innerText = prof.name;
-            document.getElementById('prof-smoke-history').innerText = `卒煙歴: ${getSmokeHistory(prof.date || new Date())}`;
-            document.getElementById('prof-bio').innerText = prof.bio || "自己紹介はありません";
-            overlay.classList.add('active');
-        };
-
-        const formatTime = (iso) => {
-            const diff = (new Date() - new Date(iso)) / 1000;
-            if (diff < 60) return "たった今";
-            if (diff < 3600) return Math.floor(diff/60) + "分前";
-            if (diff < 86400) return Math.floor(diff/3600) + "時間前";
-            return new Date(iso).toLocaleDateString('ja-JP');
         };
 
         // --- RENDERING ---
-        const renderPost = (p, isReply = false) => {
-            const prof = state.profiles[p.uid] || { name: "ユーザー" };
-            const isLiked = p.likes?.includes(state.user?.uid);
-            const smokeRank = getSmokeHistory(prof.date || p.date);
+        const renderPost = (post, isThreadMain = false) => {
+            if (state.userData.blocks?.includes(post.uid)) return '';
 
+            const history = getSmokeHistory(post.userDate || new Date().toISOString());
+            const avatarHtml = post.userAvatar ? `<img src="${post.userAvatar}" class="avatar-img">` : `<i class="fa-solid fa-user"></i>`;
+            const isMyPost = state.user && !state.isDemo && state.user.uid === post.uid;
+            
+            const deleteBtn = isMyPost ? `
+                <button class="ml-auto text-gray-300 hover:text-red-400 p-1" onclick="event.stopPropagation(); window.deletePost('${post.id}')">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>` : '';
+            
             return `
-            <div class="p-4 flex gap-3 bg-white relative ${isReply ? 'ml-6 border-l-2 border-gray-100' : ''}" onclick="openThread('${p.id}')">
-                <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center font-bold text-emerald-600 shrink-0 overflow-hidden cursor-pointer" onclick="showProfile('${p.uid}', event)">
-                    ${prof.avatar ? `<img src="${prof.avatar}" class="avatar-img">` : (prof.name || "U")[0]}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex flex-wrap items-center gap-x-2 mb-1">
-                        <span class="font-bold text-sm text-gray-800">${prof.name}</span>
-                        <span class="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 font-bold">${smokeRank}</span>
-                        <span class="text-[10px] text-gray-400 ml-auto">${formatTime(p.date)}</span>
-                    </div>
-                    <p class="text-sm text-gray-600 leading-relaxed mb-3">${p.content}</p>
-                    <div class="flex items-center gap-6 text-gray-400">
-                        <button class="flex items-center gap-1.5 hover:text-emerald-500 transition-colors" onclick="openReply('${p.id}', '${prof.name}', event)">
-                            <i class="fa-regular fa-comment"></i>
-                            <span class="text-xs font-bold">${state.posts.filter(x => x.replyTo === p.id).length}</span>
-                        </button>
-                        <button class="flex items-center gap-1.5 ${isLiked ? 'text-pink-500' : 'hover:text-pink-500'} transition-colors" onclick="handleLike('${p.id}', event)">
-                            <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                            <span class="text-xs font-bold">${p.likes?.length || 0}</span>
-                        </button>
-                    </div>
-                </div>
-            </div>`;
-        };
-
-        const renderTimeline = () => {
-            const container = document.getElementById('home-posts');
-            if (!container) return;
-            const roots = state.posts.filter(p => !p.replyTo).sort((a,b) => new Date(b.date) - new Date(a.date));
-            container.innerHTML = roots.length === 0 ? 
-                '<div class="p-20 text-center text-gray-300 font-bold">まだ投稿がありません</div>' :
-                roots.map(p => renderPost(p)).join('');
-        };
-
-        const renderThread = (rootId) => {
-            const threadContent = document.getElementById('thread-content');
-            const rootPost = state.posts.find(p => p.id === rootId);
-            if (!rootPost) return;
-
-            const buildTree = (parentId) => {
-                const replies = state.posts.filter(p => p.replyTo === parentId).sort((a,b) => new Date(a.date) - new Date(b.date));
-                return replies.map(r => `
-                    <div class="thread-node">
-                        ${renderPost(r, true)}
-                        <div class="ml-2">
-                            ${buildTree(r.id)}
+                <div class="p-4 ${isThreadMain ? 'bg-emerald-50/30' : 'bg-white'}" id="post-${post.id}" onclick="${!isThreadMain ? `window.openThread('${post.id}')` : ''}">
+                    <div class="flex gap-3">
+                        <div class="w-10 h-10 bg-gray-100 rounded-xl shrink-0 overflow-hidden flex items-center justify-center text-gray-400" onclick="event.stopPropagation(); window.showProfile('${post.uid}')">
+                            ${avatarHtml}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1 mb-0.5">
+                                <span class="font-bold text-sm truncate">${post.userName}</span>
+                                <span class="text-[10px] bg-white border border-gray-100 px-1.5 py-0.5 rounded text-gray-400 font-bold">${history}</span>
+                                ${deleteBtn}
+                            </div>
+                            <p class="text-[15px] leading-relaxed text-gray-800 break-words">${post.text}</p>
+                            <div class="flex gap-6 mt-3 text-gray-400 text-xs font-bold">
+                                <div class="flex items-center gap-1.5" onclick="event.stopPropagation(); window.openPostModal('${post.id}', '${post.userName}')">
+                                    <i class="fa-regular fa-comment"></i> <span>${state.posts.filter(p => p.parentId === post.id).length}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 ${(!state.isDemo && post.likes?.includes(state.user?.uid)) ? 'text-pink-500' : ''}" onclick="event.stopPropagation(); window.toggleLike('${post.id}')">
+                                    <i class="${(!state.isDemo && post.likes?.includes(state.user?.uid)) ? 'fa-solid' : 'fa-regular'} fa-heart"></i> <span>${post.likes?.length || 0}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                `).join('');
-            };
-
-            threadContent.innerHTML = renderPost(rootPost) + buildTree(rootId);
-            document.getElementById('thread-overlay').dataset.rootId = rootId;
+                </div>
+            `;
         };
 
-        window.openThread = (id) => {
-            renderThread(id);
-            document.getElementById('thread-overlay').classList.add('active');
+        const renderHomePosts = () => {
+            const container = document.getElementById('home-posts');
+            const rootPosts = state.posts.filter(p => !p.parentId);
+            const html = rootPosts.map(p => renderPost(p)).join('');
+            container.innerHTML = html || '<div class="p-10 text-center text-gray-300 font-bold">投稿がありません</div>';
+        };
+
+        const renderThread = (rootId, targetScrollId = null) => {
+            const container = document.getElementById('thread-content');
+            const rootPost = state.posts.find(p => p.id === rootId);
+            if (!rootPost) {
+                container.innerHTML = '<div class="p-10 text-center text-gray-400">この投稿は削除されました</div>';
+                return;
+            }
+            state.currentThreadRootId = rootId;
+            let html = renderPost(rootPost, true);
+            html += `<div class="mt-2 space-y-0 divide-y divide-gray-50 border-t border-gray-100">`;
+            html += renderTree(rootId);
+            html += `</div>`;
+            container.innerHTML = html;
+
+            if (targetScrollId) {
+                setTimeout(() => {
+                    const el = document.getElementById(`post-${targetScrollId}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
+            }
+        };
+
+        const renderTree = (parentId, depth = 0) => {
+            const children = state.posts.filter(p => p.parentId === parentId).sort((a,b) => new Date(a.date) - new Date(b.date));
+            return children.map(child => {
+                if (state.userData.blocks?.includes(child.uid)) return '';
+                const avatarHtml = child.userAvatar ? `<img src="${child.userAvatar}" class="avatar-img">` : `<i class="fa-solid fa-user"></i>`;
+                const isMyPost = state.user && !state.isDemo && state.user.uid === child.uid;
+                const deleteBtn = isMyPost ? `<button class="ml-auto text-gray-300 hover:text-red-400" onclick="event.stopPropagation(); window.deletePost('${child.id}')"><i class="fa-solid fa-trash-can"></i></button>` : '';
+
+                return `
+                    <div class="ml-${depth === 0 ? '4' : '6'} border-l-2 border-gray-100 pl-4 py-3" id="post-${child.id}">
+                        <div class="flex items-start gap-2">
+                            <div class="w-8 h-8 bg-gray-100 rounded-lg shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-gray-400" onclick="window.showProfile('${child.uid}')">
+                                ${avatarHtml}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-bold text-xs truncate">${child.userName}</span>
+                                    ${deleteBtn}
+                                </div>
+                                <p class="text-sm text-gray-700 break-words mb-2">${child.text}</p>
+                                <div class="flex gap-4 text-[10px] font-bold text-gray-400">
+                                    <button onclick="window.openPostModal('${child.id}', '${child.userName}')"><i class="fa-solid fa-reply"></i> 返信</button>
+                                    <button class="${(!state.isDemo && child.likes?.includes(state.user?.uid)) ? 'text-pink-500' : ''}" onclick="window.toggleLike('${child.id}')">
+                                        <i class="fa-solid fa-heart"></i> ${child.likes?.length || 0}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        ${renderTree(child.id, depth + 1)}
+                    </div>
+                `;
+            }).join('');
         };
 
         const renderNotifications = () => {
-            const list = document.getElementById('notif-list');
+            const container = document.getElementById('notif-list');
             if (state.notifications.length === 0) {
-                list.innerHTML = '<div class="p-10 text-center text-gray-300 font-bold">通知はありません</div>';
+                container.innerHTML = '<div class="p-10 text-center text-gray-300 font-bold">通知はありません</div>';
                 return;
             }
-            list.innerHTML = state.notifications.map(n => `
-                <div class="p-4 flex gap-3 items-start bg-white cursor-pointer" onclick="openThread('${n.postId}')">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center ${n.type === 'いいね' ? 'text-pink-500 bg-pink-50' : 'text-emerald-500 bg-emerald-50'}">
-                        <i class="fa-solid ${n.type === 'いいね' ? 'fa-heart' : 'fa-reply'}"></i>
+            container.innerHTML = state.notifications.map(n => `
+                <div class="p-4 bg-white flex gap-3 items-start border-b border-gray-50 active:bg-gray-50 transition" onclick="window.handleNotificationClick('${n.postId}', '${n.id}')">
+                    <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shrink-0 text-xs">
+                        <i class="fa-solid ${n.type === 'like' ? 'fa-heart text-pink-500' : 'fa-comment'}"></i>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-bold text-gray-800">${n.text}</p>
-                        <span class="text-[10px] text-gray-400">${formatTime(n.date)}</span>
+                        <p class="text-sm"><b>${n.fromName}</b>さんがあなたの投稿に${n.type === 'like' ? 'いいねしました' : '返信しました'}</p>
+                        <p class="text-[10px] text-gray-400 mt-1">${new Date(n.date).toLocaleString()}</p>
                     </div>
                 </div>
             `).join('');
         };
 
-        // --- EVENT LISTENERS ---
-        
-        // 修正: ウィンドウ外タップで閉じる処理
-        const overlays = document.querySelectorAll('.overlay-bg');
-        overlays.forEach(overlay => {
-            overlay.addEventListener('click', () => {
-                overlay.classList.remove('active');
-                if (overlay.id === 'modal-overlay') {
-                    state.replyTarget = null;
-                    document.getElementById('reply-target-info').classList.add('hidden');
-                    document.getElementById('modal-textarea').value = "";
-                }
-            });
-        });
+        const renderProfilePosts = (uid) => {
+            const container = document.getElementById('prof-posts');
+            const userPosts = state.posts.filter(p => p.uid === uid).sort((a,b) => new Date(b.date) - new Date(a.date));
+            if (userPosts.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">投稿はまだありません</p>';
+                return;
+            }
+            container.innerHTML = userPosts.map(p => renderPost(p)).join('');
+        };
 
-        document.getElementById('fab').addEventListener('click', () => {
-            state.replyTarget = null;
-            document.getElementById('reply-target-info').classList.add('hidden');
+        // --- EXPOSED ACTIONS ---
+        window.openPostModal = (pid = null, name = '') => {
+            if (state.isDemo) return showToast('ログインすると投稿できます');
+            state.replyTarget = pid;
+            const info = document.getElementById('reply-target-info');
+            if (pid) {
+                info.classList.remove('hidden');
+                info.querySelector('span').innerText = name;
+            } else {
+                info.classList.add('hidden');
+            }
             document.getElementById('modal-overlay').classList.add('active');
             document.getElementById('modal-textarea').focus();
-        });
+        };
 
-        document.getElementById('btn-close-modal').addEventListener('click', () => {
-            document.getElementById('modal-overlay').classList.remove('active');
-            state.replyTarget = null;
-            document.getElementById('reply-target-info').classList.add('hidden');
-        });
+        window.openThread = (postId) => {
+            let current = state.posts.find(p => p.id === postId);
+            let rootId = postId;
+            while (current && current.parentId) {
+                rootId = current.parentId;
+                current = state.posts.find(p => p.id === rootId);
+            }
+            renderThread(rootId, postId);
+            document.getElementById('thread-overlay').classList.add('active');
+        };
 
-        document.getElementById('btn-close-thread').addEventListener('click', () => {
-            document.getElementById('thread-overlay').classList.remove('active');
-        });
+        window.handleNotificationClick = async (postId, notifId) => {
+            window.openThread(postId);
+            // await deleteDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'notifications', notifId));
+        };
 
-        document.getElementById('btn-close-profile').addEventListener('click', () => {
-            document.getElementById('profile-overlay').classList.remove('active');
-        });
-
-        document.getElementById('btn-submit-post').addEventListener('click', async () => {
-            const txt = document.getElementById('modal-textarea').value.trim();
-            if (!txt || !state.user) return;
+        window.showProfile = async (uid) => {
+            const overlay = document.getElementById('profile-overlay');
+            state.currentViewUid = uid;
             
-            const newPost = { 
-                uid: state.user.uid, 
-                content: txt, 
-                date: new Date().toISOString(), 
+            const isMe = state.user && uid === state.user.uid;
+            document.getElementById('profile-actions').style.display = isMe ? 'none' : 'block';
+
+            const snap = await getDoc(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'profile'));
+            const data = snap.exists() ? snap.data() : { name: "Unknown", bio: "まだ設定がありません", avatar: null, date: new Date().toISOString() };
+            
+            document.getElementById('prof-name').innerText = data.name;
+            document.getElementById('prof-bio').innerText = data.bio;
+            document.getElementById('prof-smoke-history').innerText = getSmokeHistory(data.date);
+            document.getElementById('prof-avatar').innerHTML = data.avatar ? `<img src="${data.avatar}" class="avatar-img">` : `<i class="fa-solid fa-user"></i>`;
+            
+            const isBlocked = state.userData.blocks?.includes(uid);
+            const btn = document.getElementById('btn-block-user');
+            btn.innerHTML = isBlocked ? `<i class="fa-solid fa-user-check"></i> ブロックを解除` : `<i class="fa-solid fa-ban"></i> このユーザーをブロック`;
+            btn.onclick = () => isBlocked ? window.unblockUser(uid) : window.blockUser(uid);
+
+            renderProfilePosts(uid);
+            overlay.classList.add('active');
+        };
+
+        window.blockUser = async (uid) => {
+            if (state.isDemo) return showToast('ログインが必要です');
+            if (confirm('このユーザーをブロックしますか？\n投稿が表示されなくなります。')) {
+                await updateDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'settings', 'profile'), {
+                    blocks: arrayUnion(uid)
+                });
+                showToast('ブロックしました');
+                document.getElementById('profile-overlay').classList.remove('active');
+            }
+        };
+
+        window.unblockUser = async (uid) => {
+            if (state.isDemo) return;
+            await updateDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'settings', 'profile'), {
+                blocks: arrayRemove(uid)
+            });
+            showToast('ブロックを解除しました');
+            if (document.getElementById('profile-overlay').classList.contains('active')) {
+                window.showProfile(uid);
+            }
+        };
+
+        window.toggleLike = async (postId) => {
+            if (state.isDemo) return showToast('ログインすると「いいね」できます');
+            const post = state.posts.find(p => p.id === postId);
+            if (!post) return;
+
+            const uid = state.user.uid;
+            const isLiked = post.likes?.includes(uid);
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+
+            await updateDoc(postRef, {
+                likes: isLiked ? arrayRemove(uid) : arrayUnion(uid)
+            });
+
+            if (!isLiked && post.uid !== uid) {
+                await addDoc(collection(db, 'artifacts', appId, 'users', post.uid, 'notifications'), {
+                    type: 'like',
+                    fromId: uid,
+                    fromName: state.userData.name,
+                    postId: postId,
+                    date: new Date().toISOString()
+                });
+            }
+        };
+
+        window.deletePost = async (postId) => {
+            if (!confirm('投稿を削除しますか？')) return;
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId));
+            showToast('削除しました');
+        };
+
+        // --- LISTENERS ---
+        document.getElementById('btn-show-login').onclick = () => {
+            state.authMode = 'login';
+            document.getElementById('auth-action-text').innerText = 'ログイン';
+            document.getElementById('gateway-buttons').style.display = 'none';
+            document.getElementById('auth-form').classList.remove('hidden');
+        };
+
+        document.getElementById('btn-back-to-gateway').onclick = () => {
+            document.getElementById('gateway-buttons').style.display = 'block';
+            document.getElementById('auth-form').classList.add('hidden');
+        };
+
+        document.getElementById('btn-toggle-auth').onclick = () => {
+            state.authMode = state.authMode === 'login' ? 'signup' : 'login';
+            document.getElementById('auth-action-text').innerText = state.authMode === 'login' ? 'ログイン' : '新規登録';
+            document.getElementById('btn-toggle-auth').innerText = state.authMode === 'login' ? 'アカウントを新規作成する' : '既にアカウントをお持ちの方';
+        };
+
+        document.getElementById('btn-execute-auth').onclick = async () => {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            if (!email || !password) return showToast('入力してください');
+            
+            toggleUI('loading');
+            try {
+                if (state.authMode === 'signup') {
+                    const res = await createUserWithEmailAndPassword(auth, email, password);
+                    await setDoc(doc(db, 'artifacts', appId, 'users', res.user.uid, 'settings', 'profile'), state.userData);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+            } catch (e) {
+                showToast('エラー: ' + e.message);
+                toggleUI('auth');
+            }
+        };
+
+        document.getElementById('btn-guest-login').onclick = async () => {
+            toggleUI('loading');
+            await signInAnonymously(auth);
+        };
+
+        document.getElementById('btn-logout').onclick = () => signOut(auth);
+
+        document.getElementById('btn-save-settings').onclick = async () => {
+            if (state.isDemo) return showToast('デモモードでは保存できません');
+            const data = {
+                name: document.getElementById('cfg-name').value,
+                bio: document.getElementById('cfg-bio').value,
+                date: new Date(document.getElementById('cfg-date').value).toISOString(),
+                sticks: parseInt(document.getElementById('cfg-sticks').value) || 20,
+                price: parseInt(document.getElementById('cfg-price').value) || 600,
+                avatar: state.userData.avatar
+            };
+            await updateDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'settings', 'profile'), data);
+            showToast('保存しました');
+        };
+
+        document.getElementById('cfg-avatar-input').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                state.userData.avatar = ev.target.result;
+                document.getElementById('cfg-avatar-display').innerHTML = `<img src="${ev.target.result}" class="avatar-img">`;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        document.getElementById('btn-submit-post').onclick = async () => {
+            const text = document.getElementById('modal-textarea').value.trim();
+            if (!text) return;
+            
+            const post = {
+                uid: state.user.uid,
+                userName: state.userData.name,
+                userAvatar: state.userData.avatar,
+                userDate: state.userData.date,
+                text: text,
+                date: new Date().toISOString(),
                 likes: [],
-                replyTo: state.replyTarget ? state.replyTarget.id : null
+                parentId: state.replyTarget
             };
 
-            try {
-                const postRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), newPost);
-                
-                if (state.replyTarget) {
-                    const parentPost = state.posts.find(p => p.id === state.replyTarget.id);
-                    if (parentPost && parentPost.uid !== state.user.uid) {
-                        sendNotification(parentPost.uid, "返信", `${state.userData.name}さんがあなたの投稿に返信しました`, state.replyTarget.id);
-                    }
+            const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), post);
+
+            if (state.replyTarget) {
+                const parent = state.posts.find(p => p.id === state.replyTarget);
+                if (parent && parent.uid !== state.user.uid) {
+                    await addDoc(collection(db, 'artifacts', appId, 'users', parent.uid, 'notifications'), {
+                        type: 'reply',
+                        fromId: state.user.uid,
+                        fromName: state.userData.name,
+                        postId: docRef.id,
+                        date: new Date().toISOString()
+                    });
                 }
-
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.user.uid), {
-                    name: state.userData.name,
-                    avatar: state.userData.avatar || null,
-                    date: state.userData.date,
-                    bio: state.userData.bio || ""
-                }, { merge: true });
-
-                document.getElementById('modal-overlay').classList.remove('active');
-                document.getElementById('modal-textarea').value = "";
-                state.replyTarget = null;
-                document.getElementById('reply-target-info').classList.add('hidden');
-                showToast("送信しました");
-            } catch (e) { showToast("送信エラー"); }
-        });
-
-        document.getElementById('cfg-avatar-input').addEventListener('change', async (e) => {
-            if (e.target.files[0]) {
-                const base64 = await compressImage(e.target.files[0]);
-                state.userData.avatar = base64;
-                const avatarBox = document.getElementById('cfg-avatar-display');
-                avatarBox.innerHTML = `<img src="${base64}" class="avatar-img">`;
             }
-        });
 
-        document.getElementById('btn-save-settings').addEventListener('click', async () => {
-            if (state.user.isAnonymous) return showToast("ゲストは保存できません");
-            const name = document.getElementById('cfg-name').value;
-            const bio = document.getElementById('cfg-bio').value;
-            const sticks = parseInt(document.getElementById('cfg-sticks').value);
-            const price = parseInt(document.getElementById('cfg-price').value);
-            const date = document.getElementById('cfg-date').value;
+            document.getElementById('modal-textarea').value = '';
+            document.getElementById('modal-overlay').classList.remove('active');
+            showToast('送信しました');
+        };
 
-            state.userData = { ...state.userData, name, bio, sticks, price, date };
-            
-            await setDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'settings', 'profile'), state.userData);
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', state.user.uid), {
-                name, avatar: state.userData.avatar, date, bio
-            }, { merge: true });
-            showToast("保存しました");
-        });
-
-        document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
-
+        // Navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.onclick = () => {
                 const view = btn.dataset.view;
                 document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
                 document.getElementById(`view-${view}`).classList.remove('hidden');
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-emerald-600', 'text-gray-400'));
                 btn.classList.replace('text-gray-400', 'text-emerald-600');
-                document.getElementById('header-title').firstChild.textContent = btn.innerText;
-            });
+            };
         });
 
-        // Gateway logic
-        document.getElementById('btn-show-login').addEventListener('click', () => {
-            document.getElementById('gateway-buttons').classList.add('hidden');
-            document.getElementById('auth-form').classList.remove('hidden');
+        // ヘッダータイトルクリックでホームに戻る機能
+        document.getElementById('header-logo-area').onclick = () => {
+            // ホームタブをクリックした挙動をシミュレート
+            const homeBtn = document.querySelector('[data-view="home"]');
+            homeBtn.click();
+            
+            // スクロールをトップに戻す
+            const homeView = document.getElementById('view-home');
+            homeView.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // 背景クリックで閉じる処理の追加
+        ['modal-overlay', 'thread-overlay', 'profile-overlay'].forEach(id => {
+            document.getElementById(id).onclick = (e) => {
+                // クリックされたのが背景（自分自身）の場合のみ閉じる
+                if (e.target.id === id) {
+                    document.getElementById(id).classList.remove('active');
+                    if (id === 'thread-overlay') state.currentThreadRootId = null;
+                    if (id === 'profile-overlay') state.currentViewUid = null;
+                }
+            };
         });
-        document.getElementById('btn-back-to-gateway').addEventListener('click', () => {
-            document.getElementById('gateway-buttons').classList.remove('hidden');
-            document.getElementById('auth-form').classList.add('hidden');
-        });
-        document.getElementById('btn-toggle-auth').addEventListener('click', () => {
-            state.authMode = state.authMode === 'login' ? 'signup' : 'login';
-            document.getElementById('auth-action-text').innerText = state.authMode === 'login' ? 'ログイン' : '新規登録';
-            document.getElementById('btn-toggle-auth').innerText = state.authMode === 'login' ? 'アカウントを新規作成する' : '既にアカウントをお持ちの方';
-        });
-        document.getElementById('btn-execute-auth').addEventListener('click', async () => {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-password').value;
-            try {
-                if (state.authMode === 'login') await signInWithEmailAndPassword(auth, email, pass);
-                else await createUserWithEmailAndPassword(auth, email, pass);
-            } catch (e) { showToast("エラー: " + e.message); }
-        });
-        document.getElementById('btn-guest-login').addEventListener('click', () => signInAnonymously(auth));
-        document.getElementById('btn-delete-account').addEventListener('click', async () => {
-            if (confirm("本当にアカウントを削除しますか？")) {
-                await deleteUser(auth.currentUser);
-            }
-        });
+
+        document.getElementById('fab').onclick = () => window.openPostModal();
+        document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-overlay').classList.remove('active');
+        document.getElementById('btn-close-thread').onclick = () => {
+            document.getElementById('thread-overlay').classList.remove('active');
+            state.currentThreadRootId = null;
+        };
+        document.getElementById('btn-close-profile').onclick = () => {
+            document.getElementById('profile-overlay').classList.remove('active');
+            state.currentViewUid = null;
+        };
+        document.getElementById('btn-clear-notif').onclick = async () => {
+            if (state.isDemo) return;
+            const batch = writeBatch(db);
+            const snaps = await getDocs(collection(db, 'artifacts', appId, 'users', state.user.uid, 'notifications'));
+            snaps.forEach(d => batch.delete(d.ref));
+            await batch.commit();
+        };
+
     </script>
 </body>
 </html>
