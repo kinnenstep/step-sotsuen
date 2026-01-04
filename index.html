@@ -2,15 +2,13 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <!-- viewport-fit=cover を追加して全画面表示時の余白を制御 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>STEP卒煙 - リアルタイムSNS</title>
     
-    <!-- アイコン設定 (添付画像イメージのSVGをData URIで埋め込み) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%236fdc8c'/%3E%3Cpath d='M100 300 L70 300 Q60 300 60 340 L60 380' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M412 300 L442 300 Q452 300 452 260 L452 200' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M180 400 L180 450 L140 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M332 400 L332 450 L372 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='256' cy='256' r='140' stroke='%23ef4444' stroke-width='45' fill='none'/%3E%3Cline x1='160' y1='160' x2='352' y2='352' stroke='%23ef4444' stroke-width='45' stroke-linecap='round'/%3E%3Crect x='170' y='236' width='172' height='40' fill='white'/%3E%3Cline x1='300' y1='236' x2='300' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3Cline x1='315' y1='236' x2='315' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='0' fill='%236fdc8c'/%3E%3Cpath d='M100 300 L70 300 Q60 300 60 340 L60 380' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M412 300 L442 300 Q452 300 452 260 L452 200' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M180 400 L180 450 L140 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M332 400 L332 450 L372 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='256' cy='256' r='140' stroke='%23ef4444' stroke-width='45' fill='none'/%3E%3Cline x1='160' y1='160' x2='352' y2='352' stroke='%23ef4444' stroke-width='45' stroke-linecap='round'/%3E%3Crect x='170' y='236' width='172' height='40' fill='white'/%3E%3Cline x1='300' y1='236' x2='300' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3Cline x1='315' y1='236' x2='315' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3C/svg%3E">
+    <!-- ベースのSVGアイコン -->
+    <link rel="icon" type="image/svg+xml" id="favicon-svg" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%236fdc8c'/%3E%3Cpath d='M100 300 L70 300 Q60 300 60 340 L60 380' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M412 300 L442 300 Q452 300 452 260 L452 200' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M180 400 L180 450 L140 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M332 400 L332 450 L372 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='256' cy='256' r='140' stroke='%23ef4444' stroke-width='45' fill='none'/%3E%3Cline x1='160' y1='160' x2='352' y2='352' stroke='%23ef4444' stroke-width='45' stroke-linecap='round'/%3E%3Crect x='170' y='236' width='172' height='40' fill='white'/%3E%3Cline x1='300' y1='236' x2='300' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3Cline x1='315' y1='236' x2='315' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3C/svg%3E">
     
-    <!-- PWA用マニフェスト (Data URI) -->
+    <!-- PWA用マニフェスト -->
     <link rel="manifest" href='data:application/manifest+json,{"name":"STEP卒煙","short_name":"STEP卒煙","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#ffffff","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 512 512%27%3E%3Crect width=%27512%27 height=%27512%27 rx=%27100%27 fill=%27%236fdc8c%27/%3E%3Cpath d=%27M100 300 L70 300 Q60 300 60 340 L60 380%27 stroke=%27%23ef4444%27 stroke-width=%2730%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3Cpath d=%27M412 300 L442 300 Q452 300 452 260 L452 200%27 stroke=%27%23ef4444%27 stroke-width=%2730%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3Cpath d=%27M180 400 L180 450 L140 450%27 stroke=%27%23ef4444%27 stroke-width=%2730%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M332 400 L332 450 L372 450%27 stroke=%27%23ef4444%27 stroke-width=%2730%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%27256%27 cy=%27256%27 r=%27140%27 stroke=%27%23ef4444%27 stroke-width=%2745%27 fill=%27none%27/%3E%3Cline x1=%27160%27 y1=%27160%27 x2=%27352%27 y2=%27352%27 stroke=%27%23ef4444%27 stroke-width=%2745%27 stroke-linecap=%27round%27/%3E%3Crect x=%27170%27 y=%27236%27 width=%27172%27 height=%2740%27 fill=%27white%27/%3E%3Cline x1=%27300%27 y1=%27236%27 x2=%27300%27 y2=%27276%27 stroke=%27%23ccc%27 stroke-width=%272%27/%3E%3Cline x1=%27315%27 y1=%27236%27 x2=%27315%27 y2=%27276%27 stroke=%27%23ccc%27 stroke-width=%272%27/%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}'>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,14 +24,12 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: #0f1419;
             overflow: hidden;
-            /* Android対策: 100dvhでアドレスバー伸縮に対応 */
             height: 100vh;
-            height: 100dvh;
+            height: 100dvh; /* Android対策 */
             margin: 0;
         }
 
         .app-container {
-            /* Android対策: 100dvh */
             height: 100vh;
             height: 100dvh;
             display: none;
@@ -60,7 +56,6 @@
             border-top: 1px solid var(--twitter-border);
             padding-bottom: env(safe-area-inset-bottom);
             z-index: 100;
-            /* 縮小を防ぐ */
             flex-shrink: 0;
         }
 
@@ -120,7 +115,6 @@
             overflow-y: auto;
         }
 
-        /* Overlay共通: opacity transitionを追加してリッチにしても良いが今回はシンプルに */
         #thread-overlay { z-index: 500; }
         #profile-overlay { z-index: 600; }
         #modal-overlay { z-index: 700; }
@@ -131,7 +125,6 @@
             background: rgba(0,0,0,0.4);
             display: none;
             cursor: pointer;
-            /* アドレスバー対策で念のためここも */
             height: 100vh;
             height: 100dvh;
         }
@@ -168,7 +161,6 @@
             display: block;
         }
 
-        /* Profile Layout adjustments */
         #profile-inner-container {
             position: absolute;
             bottom: 0;
@@ -176,7 +168,7 @@
             right: 0;
             background: white;
             border-radius: 2.5rem 2.5rem 0 0;
-            height: 90vh; /* フォールバック */
+            height: 90vh;
             height: 90dvh;
             display: flex;
             flex-direction: column;
@@ -423,10 +415,45 @@
             notifications: [],
             replyTarget: null,
             currentThreadRootId: null,
-            currentViewUid: null 
+            currentViewUid: null,
+            editingAvatar: null // 設定変更中の一時保存
         };
 
         let statsTimer = null;
+
+        // iOS等の「ホーム画面に追加」用に、SVGアイコンをPNGに変換して apple-touch-icon を生成する
+        const setupAppleTouchIcon = () => {
+            const svgUrl = document.getElementById('favicon-svg').href;
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512; canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const pngData = canvas.toDataURL('image/png');
+                
+                let link = document.querySelector('link[rel="apple-touch-icon"]');
+                if (!link) {
+                    link = document.createElement('link');
+                    link.rel = 'apple-touch-icon';
+                    document.head.appendChild(link);
+                }
+                link.href = pngData;
+            };
+            img.src = svgUrl;
+        };
+        // 起動時に実行
+        setupAppleTouchIcon();
+
+
+        // UTC文字列をローカル日時のYYYY-MM-DDThh:mm形式に変換（設定画面の時間ズレ防止）
+        const toDatetimeLocal = (isoString) => {
+            if (!isoString) return '';
+            const d = new Date(isoString);
+            const offset = d.getTimezoneOffset() * 60000; 
+            // ローカルオフセット分を引いてISOString化し、Z以前を取得
+            return (new Date(d - offset)).toISOString().slice(0, 16);
+        };
 
         const showToast = (m) => {
             const t = document.getElementById('toast');
@@ -543,15 +570,19 @@
         };
 
         const syncSettingsUI = async () => {
+            // 編集中でなければフォームをDBの値で更新
+            if (state.editingAvatar === null) {
+                const display = document.getElementById('cfg-avatar-display');
+                display.innerHTML = state.userData.avatar ? `<img src="${state.userData.avatar}" class="avatar-img">` : `<i class="fa-solid fa-user"></i>`;
+            }
+            
             document.getElementById('cfg-name').value = state.userData.name;
             document.getElementById('cfg-bio').value = state.userData.bio;
-            document.getElementById('cfg-date').value = state.userData.date.slice(0, 16);
+            // ローカル時間に変換してセット（ここが修正点）
+            document.getElementById('cfg-date').value = toDatetimeLocal(state.userData.date);
             document.getElementById('cfg-sticks').value = state.userData.sticks;
             document.getElementById('cfg-price').value = state.userData.price;
             document.getElementById('demo-mode-indicator').classList.toggle('hidden', !state.isDemo);
-            
-            const display = document.getElementById('cfg-avatar-display');
-            display.innerHTML = state.userData.avatar ? `<img src="${state.userData.avatar}" class="avatar-img">` : `<i class="fa-solid fa-user"></i>`;
 
             const blContainer = document.getElementById('block-list');
             if (!state.userData.blocks || state.userData.blocks.length === 0) {
@@ -708,7 +739,6 @@
         };
 
         // --- EXPOSED ACTIONS ---
-        // History API対応: オーバーレイを開く際は pushState する
         window.openPostModal = (pid = null, name = '') => {
             if (state.isDemo) return showToast('ログインすると投稿できます');
             state.replyTarget = pid;
@@ -773,7 +803,6 @@
                     blocks: arrayUnion(uid)
                 });
                 showToast('ブロックしました');
-                // UI上の操作で閉じる場合は history.back()
                 history.back();
             }
         };
@@ -785,13 +814,7 @@
             });
             showToast('ブロックを解除しました');
             if (document.getElementById('profile-overlay').classList.contains('active')) {
-                // 同じ画面の再描画なのでそのまま
                 window.showProfile(uid);
-                // ただし再描画時に二重にpushStateしないよう注意が必要だが、
-                // window.showProfileの実装はシンプルに呼んでいるだけなので、
-                // 厳密にはここだけ調整が必要かもしれない。
-                // 簡易対応: 上書きで2回呼ばれても履歴が1つ増えるだけなので許容、または別途描画関数を分ける。
-                // ここでは描画更新のみ行いたいので renderProfilePosts を呼ぶだけに留めるのが安全。
                 renderProfilePosts(uid);
             }
         };
@@ -827,9 +850,7 @@
         };
 
         // --- LISTENERS ---
-        // 戻るボタン (popstate) イベントリスナー
         window.addEventListener('popstate', (event) => {
-            // アクティブなオーバーレイを探して閉じる
             const overlays = ['modal-overlay', 'thread-overlay', 'profile-overlay'];
             overlays.forEach(id => {
                 const el = document.getElementById(id);
@@ -890,12 +911,17 @@
             const data = {
                 name: document.getElementById('cfg-name').value,
                 bio: document.getElementById('cfg-bio').value,
+                // input値はローカル時間なので、new Date()でUTCのISOStringに戻して保存する
                 date: new Date(document.getElementById('cfg-date').value).toISOString(),
                 sticks: parseInt(document.getElementById('cfg-sticks').value) || 20,
                 price: parseInt(document.getElementById('cfg-price').value) || 600,
-                avatar: state.userData.avatar
+                // 編集中（state.editingAvatar）があればそれを使用し、なければ元のデータを使用
+                avatar: state.editingAvatar || state.userData.avatar
             };
             await updateDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'settings', 'profile'), data);
+            
+            // 保存完了後、編集状態をクリア
+            state.editingAvatar = null;
             showToast('保存しました');
         };
 
@@ -904,7 +930,8 @@
             if (!file) return;
             const reader = new FileReader();
             reader.onload = async (ev) => {
-                state.userData.avatar = ev.target.result;
+                // state.userData.avatarは直接書き換えず、一時変数に保存
+                state.editingAvatar = ev.target.result;
                 document.getElementById('cfg-avatar-display').innerHTML = `<img src="${ev.target.result}" class="avatar-img">`;
             };
             reader.readAsDataURL(file);
@@ -941,7 +968,6 @@
             }
 
             document.getElementById('modal-textarea').value = '';
-            // UI上の操作で閉じる -> history.back()
             history.back();
             showToast('送信しました');
         };
@@ -949,6 +975,11 @@
         // Navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.onclick = () => {
+                // 画面切り替え時に編集中のアバターをリセット
+                state.editingAvatar = null;
+                // 設定画面を開くときはDBの値でフォームを再同期（リセット効果）
+                if (btn.dataset.view === 'setting') syncSettingsUI();
+
                 const view = btn.dataset.view;
                 document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
                 document.getElementById(`view-${view}`).classList.remove('hidden');
@@ -957,7 +988,6 @@
             };
         });
 
-        // ヘッダータイトルクリックでホームに戻る機能
         document.getElementById('header-logo-area').onclick = () => {
             const homeBtn = document.querySelector('[data-view="home"]');
             homeBtn.click();
@@ -965,10 +995,8 @@
             homeView.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // 背景クリック、ボタンクリックでの「閉じる」処理の統一 (history.back())
         ['modal-overlay', 'thread-overlay', 'profile-overlay'].forEach(id => {
             document.getElementById(id).onclick = (e) => {
-                // クリックされたのが背景（自分自身）の場合のみ閉じる
                 if (e.target.id === id) {
                     history.back();
                 }
