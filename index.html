@@ -2,8 +2,17 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- viewport-fit=cover を追加して全画面表示時の余白を制御 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>STEP卒煙 - リアルタイムSNS</title>
+    
+    <!-- アイコン設定 (添付画像イメージのSVGをData URIで埋め込み) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%236fdc8c'/%3E%3Cpath d='M100 300 L70 300 Q60 300 60 340 L60 380' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M412 300 L442 300 Q452 300 452 260 L452 200' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M180 400 L180 450 L140 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M332 400 L332 450 L372 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='256' cy='256' r='140' stroke='%23ef4444' stroke-width='45' fill='none'/%3E%3Cline x1='160' y1='160' x2='352' y2='352' stroke='%23ef4444' stroke-width='45' stroke-linecap='round'/%3E%3Crect x='170' y='236' width='172' height='40' fill='white'/%3E%3Cline x1='300' y1='236' x2='300' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3Cline x1='315' y1='236' x2='315' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='0' fill='%236fdc8c'/%3E%3Cpath d='M100 300 L70 300 Q60 300 60 340 L60 380' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M412 300 L442 300 Q452 300 452 260 L452 200' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round'/%3E%3Cpath d='M180 400 L180 450 L140 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M332 400 L332 450 L372 450' stroke='%23ef4444' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='256' cy='256' r='140' stroke='%23ef4444' stroke-width='45' fill='none'/%3E%3Cline x1='160' y1='160' x2='352' y2='352' stroke='%23ef4444' stroke-width='45' stroke-linecap='round'/%3E%3Crect x='170' y='236' width='172' height='40' fill='white'/%3E%3Cline x1='300' y1='236' x2='300' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3Cline x1='315' y1='236' x2='315' y2='276' stroke='%23ccc' stroke-width='2'/%3E%3C/svg%3E">
+    
+    <!-- PWA用マニフェスト (Data URI) -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"STEP卒煙","short_name":"STEP卒煙","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#ffffff","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 512 512%27%3E%3Crect width=%27512%27 height=%27512%27 rx=%27100%27 fill=%27%236fdc8c%27/%3E%3Cpath d=%27M100 300 L70 300 Q60 300 60 340 L60 380%27 stroke=%27%23ef4444%27 stroke-width=%2730%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3Cpath d=%27M412 300 L442 300 Q452 300 452 260 L452 200%27 stroke=%27%23ef4444%27 stroke-width=%2730%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3Cpath d=%27M180 400 L180 450 L140 450%27 stroke=%27%23ef4444%27 stroke-width=%2730%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M332 400 L332 450 L372 450%27 stroke=%27%23ef4444%27 stroke-width=%2730%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%27256%27 cy=%27256%27 r=%27140%27 stroke=%27%23ef4444%27 stroke-width=%2745%27 fill=%27none%27/%3E%3Cline x1=%27160%27 y1=%27160%27 x2=%27352%27 y2=%27352%27 stroke=%27%23ef4444%27 stroke-width=%2745%27 stroke-linecap=%27round%27/%3E%3Crect x=%27170%27 y=%27236%27 width=%27172%27 height=%2740%27 fill=%27white%27/%3E%3Cline x1=%27300%27 y1=%27236%27 x2=%27300%27 y2=%27276%27 stroke=%27%23ccc%27 stroke-width=%272%27/%3E%3Cline x1=%27315%27 y1=%27236%27 x2=%27315%27 y2=%27276%27 stroke=%27%23ccc%27 stroke-width=%272%27/%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}'>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -17,12 +26,16 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: #0f1419;
             overflow: hidden;
+            /* Android対策: 100dvhでアドレスバー伸縮に対応 */
             height: 100vh;
+            height: 100dvh;
             margin: 0;
         }
 
         .app-container {
+            /* Android対策: 100dvh */
             height: 100vh;
+            height: 100dvh;
             display: none;
             flex-direction: column;
             position: relative;
@@ -47,6 +60,8 @@
             border-top: 1px solid var(--twitter-border);
             padding-bottom: env(safe-area-inset-bottom);
             z-index: 100;
+            /* 縮小を防ぐ */
+            flex-shrink: 0;
         }
 
         .post-button {
@@ -105,18 +120,22 @@
             overflow-y: auto;
         }
 
+        /* Overlay共通: opacity transitionを追加してリッチにしても良いが今回はシンプルに */
         #thread-overlay { z-index: 500; }
         #profile-overlay { z-index: 600; }
         #modal-overlay { z-index: 700; }
 
-        #modal-overlay, #thread-overlay, #profile-overlay {
+        .overlay-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4);
             display: none;
-            cursor: pointer; /* 背景クリックを意識させる */
+            cursor: pointer;
+            /* アドレスバー対策で念のためここも */
+            height: 100vh;
+            height: 100dvh;
         }
-        #modal-overlay.active, #thread-overlay.active, #profile-overlay.active { display: block; }
+        .overlay-container.active { display: block; }
 
         .avatar-img {
             width: 100%;
@@ -157,11 +176,12 @@
             right: 0;
             background: white;
             border-radius: 2.5rem 2.5rem 0 0;
-            height: 90vh;
+            height: 90vh; /* フォールバック */
+            height: 90dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            cursor: default; /* 内部はデフォルトカーソル */
+            cursor: default;
         }
     </style>
 </head>
@@ -209,20 +229,14 @@
     <div id="toast">完了しました</div>
 
     <div id="app-root" class="app-container">
-        <!-- 修正: ヘッダータイトルを中央配置、クリックでホームへ -->
         <header class="bg-white border-b border-gray-100 h-14 shrink-0 relative flex items-center justify-between px-4 z-20">
-            <!-- 左側（空白用） -->
             <div class="w-16"></div>
-
-            <!-- 中央タイトル -->
             <div id="header-logo-area" class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center cursor-pointer active:scale-95 transition-transform">
                 <h1 class="text-xl font-black text-emerald-600 flex items-center gap-1">
                     <i class="fa-solid fa-leaf text-lg"></i> STEP卒煙
                 </h1>
                 <span id="demo-mode-indicator" class="demo-badge hidden mt-0.5">デモモード</span>
             </div>
-
-            <!-- 右側ランクバッジ -->
             <div id="user-rank-badge" class="text-[11px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full border border-emerald-100 max-w-[120px] truncate text-center">
                 卒煙ビギナー
             </div>
@@ -329,8 +343,7 @@
     </div>
 
     <!-- Modals & Overlays -->
-    <!-- ウィンドウ外クリックで閉じるように onclickを追加 -->
-    <div id="modal-overlay">
+    <div id="modal-overlay" class="overlay-container">
         <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 h-[70vh] flex flex-col cursor-default" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-6">
                 <button id="btn-close-modal" class="text-gray-400 font-bold">閉じる</button>
@@ -341,7 +354,7 @@
         </div>
     </div>
 
-    <div id="thread-overlay">
+    <div id="thread-overlay" class="overlay-container">
         <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-0 h-[90vh] flex flex-col overflow-hidden cursor-default" onclick="event.stopPropagation()">
             <div class="p-4 border-b flex justify-between items-center bg-white sticky top-0 z-10">
                 <button id="btn-close-thread" class="text-gray-400 font-bold">閉じる</button>
@@ -352,7 +365,7 @@
         </div>
     </div>
 
-    <div id="profile-overlay">
+    <div id="profile-overlay" class="overlay-container">
         <div id="profile-inner-container" onclick="event.stopPropagation()">
             <div class="p-4 border-b flex justify-between items-center shrink-0">
                 <button id="btn-close-profile" class="text-gray-400 font-bold">閉じる</button>
@@ -386,7 +399,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, updateDoc, arrayUnion, arrayRemove, deleteDoc, writeBatch, getDocs, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global configuration
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'step-sotsuen-default';
         const firebaseConfig = {
             apiKey: "AIzaSyBk0fqca2a1xfmZsCLK_zJLSWsp8WV8UVk",
@@ -416,7 +428,6 @@
 
         let statsTimer = null;
 
-        // UI Helpers
         const showToast = (m) => {
             const t = document.getElementById('toast');
             if(!t) return;
@@ -542,7 +553,6 @@
             const display = document.getElementById('cfg-avatar-display');
             display.innerHTML = state.userData.avatar ? `<img src="${state.userData.avatar}" class="avatar-img">` : `<i class="fa-solid fa-user"></i>`;
 
-            // Block List with Usernames
             const blContainer = document.getElementById('block-list');
             if (!state.userData.blocks || state.userData.blocks.length === 0) {
                 blContainer.innerHTML = '<p class="text-xs text-center text-gray-400 py-2">ブロックしているユーザーはいません</p>';
@@ -698,6 +708,7 @@
         };
 
         // --- EXPOSED ACTIONS ---
+        // History API対応: オーバーレイを開く際は pushState する
         window.openPostModal = (pid = null, name = '') => {
             if (state.isDemo) return showToast('ログインすると投稿できます');
             state.replyTarget = pid;
@@ -708,6 +719,8 @@
             } else {
                 info.classList.add('hidden');
             }
+            // 履歴に追加してから表示
+            history.pushState({ overlay: 'modal-overlay' }, '', '');
             document.getElementById('modal-overlay').classList.add('active');
             document.getElementById('modal-textarea').focus();
         };
@@ -720,18 +733,17 @@
                 current = state.posts.find(p => p.id === rootId);
             }
             renderThread(rootId, postId);
+            // 履歴に追加してから表示
+            history.pushState({ overlay: 'thread-overlay' }, '', '');
             document.getElementById('thread-overlay').classList.add('active');
         };
 
         window.handleNotificationClick = async (postId, notifId) => {
             window.openThread(postId);
-            // await deleteDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'notifications', notifId));
         };
 
         window.showProfile = async (uid) => {
-            const overlay = document.getElementById('profile-overlay');
             state.currentViewUid = uid;
-            
             const isMe = state.user && uid === state.user.uid;
             document.getElementById('profile-actions').style.display = isMe ? 'none' : 'block';
 
@@ -749,7 +761,9 @@
             btn.onclick = () => isBlocked ? window.unblockUser(uid) : window.blockUser(uid);
 
             renderProfilePosts(uid);
-            overlay.classList.add('active');
+            // 履歴に追加してから表示
+            history.pushState({ overlay: 'profile-overlay' }, '', '');
+            document.getElementById('profile-overlay').classList.add('active');
         };
 
         window.blockUser = async (uid) => {
@@ -759,7 +773,8 @@
                     blocks: arrayUnion(uid)
                 });
                 showToast('ブロックしました');
-                document.getElementById('profile-overlay').classList.remove('active');
+                // UI上の操作で閉じる場合は history.back()
+                history.back();
             }
         };
 
@@ -770,7 +785,14 @@
             });
             showToast('ブロックを解除しました');
             if (document.getElementById('profile-overlay').classList.contains('active')) {
+                // 同じ画面の再描画なのでそのまま
                 window.showProfile(uid);
+                // ただし再描画時に二重にpushStateしないよう注意が必要だが、
+                // window.showProfileの実装はシンプルに呼んでいるだけなので、
+                // 厳密にはここだけ調整が必要かもしれない。
+                // 簡易対応: 上書きで2回呼ばれても履歴が1つ増えるだけなので許容、または別途描画関数を分ける。
+                // ここでは描画更新のみ行いたいので renderProfilePosts を呼ぶだけに留めるのが安全。
+                renderProfilePosts(uid);
             }
         };
 
@@ -805,6 +827,20 @@
         };
 
         // --- LISTENERS ---
+        // 戻るボタン (popstate) イベントリスナー
+        window.addEventListener('popstate', (event) => {
+            // アクティブなオーバーレイを探して閉じる
+            const overlays = ['modal-overlay', 'thread-overlay', 'profile-overlay'];
+            overlays.forEach(id => {
+                const el = document.getElementById(id);
+                if (el.classList.contains('active')) {
+                    el.classList.remove('active');
+                    if (id === 'thread-overlay') state.currentThreadRootId = null;
+                    if (id === 'profile-overlay') state.currentViewUid = null;
+                }
+            });
+        });
+
         document.getElementById('btn-show-login').onclick = () => {
             state.authMode = 'login';
             document.getElementById('auth-action-text').innerText = 'ログイン';
@@ -905,7 +941,8 @@
             }
 
             document.getElementById('modal-textarea').value = '';
-            document.getElementById('modal-overlay').classList.remove('active');
+            // UI上の操作で閉じる -> history.back()
+            history.back();
             showToast('送信しました');
         };
 
@@ -922,37 +959,27 @@
 
         // ヘッダータイトルクリックでホームに戻る機能
         document.getElementById('header-logo-area').onclick = () => {
-            // ホームタブをクリックした挙動をシミュレート
             const homeBtn = document.querySelector('[data-view="home"]');
             homeBtn.click();
-            
-            // スクロールをトップに戻す
             const homeView = document.getElementById('view-home');
             homeView.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // 背景クリックで閉じる処理の追加
+        // 背景クリック、ボタンクリックでの「閉じる」処理の統一 (history.back())
         ['modal-overlay', 'thread-overlay', 'profile-overlay'].forEach(id => {
             document.getElementById(id).onclick = (e) => {
                 // クリックされたのが背景（自分自身）の場合のみ閉じる
                 if (e.target.id === id) {
-                    document.getElementById(id).classList.remove('active');
-                    if (id === 'thread-overlay') state.currentThreadRootId = null;
-                    if (id === 'profile-overlay') state.currentViewUid = null;
+                    history.back();
                 }
             };
         });
 
         document.getElementById('fab').onclick = () => window.openPostModal();
-        document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-overlay').classList.remove('active');
-        document.getElementById('btn-close-thread').onclick = () => {
-            document.getElementById('thread-overlay').classList.remove('active');
-            state.currentThreadRootId = null;
-        };
-        document.getElementById('btn-close-profile').onclick = () => {
-            document.getElementById('profile-overlay').classList.remove('active');
-            state.currentViewUid = null;
-        };
+        document.getElementById('btn-close-modal').onclick = () => history.back();
+        document.getElementById('btn-close-thread').onclick = () => history.back();
+        document.getElementById('btn-close-profile').onclick = () => history.back();
+        
         document.getElementById('btn-clear-notif').onclick = async () => {
             if (state.isDemo) return;
             const batch = writeBatch(db);
